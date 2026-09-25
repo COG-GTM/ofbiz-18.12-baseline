@@ -36,7 +36,11 @@ if (!security.hasPermission("DATAFILE_MAINT", session) || !security.hasPermissio
 // Only paths inside ofbiz.home are accepted; remote URLs are not (see OFBIZ-12306).
 String toOfbizHomePath(String location) {
     String ofbizHome = new File(System.getProperty("ofbiz.home")).getCanonicalPath()
-    String canonical = new File(location).getCanonicalPath()
+    File file = new File(location)
+    if (!file.isAbsolute()) {
+        file = new File(ofbizHome, location)
+    }
+    String canonical = file.getCanonicalPath()
     if (!canonical.equals(ofbizHome) && !canonical.startsWith(ofbizHome + File.separator)) {
         Debug.logWarning("Rejected data file location outside ofbiz.home for userLogin [" + userLoginId + "]: " + location, "ViewDataFile.groovy")
         throw new IllegalArgumentException("File locations must be inside the OFBiz home directory")

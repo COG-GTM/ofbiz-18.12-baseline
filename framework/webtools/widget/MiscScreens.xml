@@ -27,14 +27,21 @@ under the License.
                 <set field="headerItem" value="main"/>
                 <set field="titleProperty" value="WebtoolsDataFileMainTitle"/>
                 <set field="tabButtonItem" value="data"/>
-                <script location="component://webtools/groovyScripts/datafile/ViewDataFile.groovy"/>
             </actions>
             <widgets>
                 <decorator-screen name="CommonImportExportDecorator" location="${parameters.mainDecoratorLocation}">
                     <decorator-section name="body">
-                        <screenlet>
-                            <platform-specific><html><html-template location="component://webtools/template/datafile/ViewDataFile.ftl"/></html></platform-specific>
-                        </screenlet>
+                        <!-- the script runs inside the decorator body so it is only reached after the decorator's permission check -->
+                        <section>
+                            <actions>
+                                <script location="component://webtools/groovyScripts/datafile/ViewDataFile.groovy"/>
+                            </actions>
+                            <widgets>
+                                <screenlet>
+                                    <platform-specific><html><html-template location="component://webtools/template/datafile/ViewDataFile.ftl"/></html></platform-specific>
+                                </screenlet>
+                            </widgets>
+                        </section>
                     </decorator-section>
                 </decorator-screen>
             </widgets>
