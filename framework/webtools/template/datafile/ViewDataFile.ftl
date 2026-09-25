@@ -75,12 +75,12 @@ under the License.
       </#if>
 
     <#macro displayrecords records>
-        <#local lastRecordName = null>
+        <#local lastRecordName = "">
         <#list records as record>
           <#local modelRecord = record.getModelRecord()>
           <#-- if record is different than the last displayed, make a new table and header row -->
-          <#if !(modelRecord.name == lastRecordName)>
-            <#if lastRecordName??>
+          <#if modelRecord.name != lastRecordName>
+            <#if lastRecordName?has_content>
               </table><br />
             </#if>
             <table class="basic-table hover-bar" cellspacing="0">
@@ -98,16 +98,16 @@ under the License.
                   <td><b>${modelField.name}</b></td>
                 </#list>
               </tr>
-            <#assign lastRecordName = modelRecord.name>
+            <#local lastRecordName = modelRecord.name>
           </#if>
 
           <tr>
             <#list modelRecord.fields as modelField>
-              <#local value = record.get(modelField.name)>
+              <#local value = record.get(modelField.name)!>
               <#if value?has_content>
                 <td>${value}</td>
               <#else>
-                <td>${modelField.defaultValue}</td>
+                <td>${modelField.defaultValue!}</td>
               </#if>
             </#list>
           </tr>
