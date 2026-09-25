@@ -30,7 +30,7 @@ final String MODULE = "ViewDataFile.groovy"
 uiLabelMap = UtilProperties.getResourceBundleMap("WebtoolsUiLabels", locale)
 messages = []
 
-if (!security.hasPermission("DATAFILE_MAINT", session)) {
+if (!security.hasPermission("ENTITY_MAINT", session) || !security.hasPermission("DATAFILE_MAINT", session)) {
     messages.add(uiLabelMap.WebtoolsPermissionError)
     context.messages = messages
     return
