@@ -19,12 +19,39 @@
 
 import java.util.*
 import java.net.*
+import java.util.regex.Pattern
 import org.apache.ofbiz.security.*
 import org.apache.ofbiz.base.util.*
 import org.apache.ofbiz.datafile.*
 
+final String MODULE = "ViewDataFile.groovy"
+
 uiLabelMap = UtilProperties.getResourceBundleMap("WebtoolsUiLabels", locale)
 messages = []
+
+if (!security.hasPermission("DATAFILE_MAINT", session)) {
+    messages.add(uiLabelMap.WebtoolsPermissionError)
+    context.messages = messages
+    return
+}
+
+// Output files are only ever written under this directory; the request supplies a bare file name, never a path.
+final File outputDir = new File(System.getProperty("ofbiz.home"), "runtime/output/datafile").getCanonicalFile()
+final Pattern safeFileName = Pattern.compile('^[A-Za-z0-9_-]{1,200}(\\.[A-Za-z0-9]{1,10})?$')
+
+resolveOutputFile = { String fileName ->
+    if (!fileName || !safeFileName.matcher(fileName).matches()) {
+        return null
+    }
+    File outFile = new File(outputDir, fileName).getCanonicalFile()
+    if (!outputDir.equals(outFile.getParentFile())) {
+        return null
+    }
+    if (!outputDir.isDirectory() && !outputDir.mkdirs()) {
+        return null
+    }
+    return outFile
+}
 
 dataFileSave = request.getParameter("DATAFILE_SAVE")
 
@@ -81,23 +108,34 @@ if (dataFile) {
 }
 
 if (dataFile && dataFileSave) {
-    try {
-        dataFile.writeDataFile(dataFileSave)
-        messages.add(uiLabelMap.WebtoolsDataFileSavedTo + dataFileSave)
-    }
-    catch (Exception e) {
-        messages.add(e.getMessage())
+    File outFile = resolveOutputFile(dataFileSave)
+    if (outFile) {
+        try {
+            dataFile.writeDataFile(outFile.getPath())
+            messages.add(uiLabelMap.WebtoolsDataFileSavedTo + outFile.getName())
+        }
+        catch (Exception e) {
+            Debug.logError(e, "Error writing data file", MODULE)
+            messages.add(uiLabelMap.WebtoolsDataFileSaveError)
+        }
+    } else {
+        messages.add(uiLabelMap.WebtoolsDataFileInvalidSaveName)
     }
 }
 
 if (dataFile && entityXmlFileSave) {
-    try {
-        //dataFile.writeDataFile(entityXmlFileSave)
-        DataFile2EntityXml.writeToEntityXml(entityXmlFileSave, dataFile)
-        messages.add(uiLabelMap.WebtoolsDataEntityFileSavedTo + entityXmlFileSave)
-    }
-    catch (Exception e) {
-        messages.add(e.getMessage())
+    File outFile = resolveOutputFile(entityXmlFileSave)
+    if (outFile) {
+        try {
+            DataFile2EntityXml.writeToEntityXml(outFile.getPath(), dataFile)
+            messages.add(uiLabelMap.WebtoolsDataEntityFileSavedTo + outFile.getName())
+        }
+        catch (Exception e) {
+            Debug.logError(e, "Error writing entity XML file", MODULE)
+            messages.add(uiLabelMap.WebtoolsDataFileSaveError)
+        }
+    } else {
+        messages.add(uiLabelMap.WebtoolsDataFileInvalidSaveName)
     }
 }
 context.messages = messages

@@ -49,11 +49,13 @@ under the License.
           </tr>
           <tr>
             <td class="label">${uiLabelMap.WebtoolsDataSaveToFile}</td>
-            <td><input name="DATAFILE_SAVE" type="text" size="60" value="${parameters.DATAFILE_SAVE!}"/></td>
+            <td><input name="DATAFILE_SAVE" type="text" size="60" value="${parameters.DATAFILE_SAVE!}"/>
+            <span class="tooltip">${uiLabelMap.WebtoolsDataFileSaveNameHint}</span></td>
           </tr>
           <tr>
             <td class="label">${uiLabelMap.WebtoolsDataSaveToXml}</td>
-            <td><input name="ENTITYXML_FILE_SAVE" type="text" size="60" value="${parameters.ENTITYXML_FILE_SAVE!}" /></td>
+            <td><input name="ENTITYXML_FILE_SAVE" type="text" size="60" value="${parameters.ENTITYXML_FILE_SAVE!}" />
+            <span class="tooltip">${uiLabelMap.WebtoolsDataFileSaveNameHint}</span></td>
           </tr>
           <tr>
             <td class="label"></td>
