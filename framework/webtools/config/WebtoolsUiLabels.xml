@@ -2177,6 +2177,9 @@
         <value xml:lang="zh">导出</value>
         <value xml:lang="zh-TW">匯出</value>
     </property>
+    <property key="WebtoolsExportDirectoryNote">
+        <value xml:lang="en">Exports are written below the configured export directory (security.properties entityExportDir). Directory and file names must be a single name without path separators. Export directory:</value>
+    </property>
     <property key="WebtoolsExportEntityEoModelBundle">
         <value xml:lang="de">Entitäten EOModellBundle Export</value>
         <value xml:lang="en">Export Entity EOModelBundle</value>
@@ -2188,6 +2191,9 @@
         <value xml:lang="vi">Kết xuất Thực thể EOModelBundle</value>
         <value xml:lang="zh">导出实体EOModelBundle</value>
         <value xml:lang="zh-TW">匯出資料實體EOModelBundle</value>
+    </property>
+    <property key="WebtoolsExportPathNotAllowed">
+        <value xml:lang="en">The output directory or file name is not allowed. Use a single name without path separators; exports are confined to ${exportBaseDir}.</value>
     </property>
     <property key="WebtoolsExportFromDataSource">
         <value xml:lang="de">XML Export aus der Datenquelle</value>

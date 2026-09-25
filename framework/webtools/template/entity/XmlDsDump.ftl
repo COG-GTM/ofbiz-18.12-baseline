@@ -55,6 +55,9 @@ under the License.
   <hr />
 
   <h2>${uiLabelMap.WebtoolsExport}:</h2>
+  <#if exportBaseDir?has_content>
+    <p>${uiLabelMap.WebtoolsExportDirectoryNote} <code>${exportBaseDir}</code></p>
+  </#if>
   <form method="post" action="<@ofbizUrl>xmldsdump</@ofbizUrl>" name="entityExport">
     <table class="basic-table">
       <tr>
