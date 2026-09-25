@@ -76,11 +76,12 @@ under the License.
 
     <#macro displayrecords records>
         <#local lastRecordName = "">
+        <#local tableOpen = false>
         <#list records as record>
           <#local modelRecord = record.getModelRecord()>
           <#-- if record is different than the last displayed, make a new table and header row -->
-          <#if modelRecord.name != lastRecordName>
-            <#if lastRecordName?has_content>
+          <#if !tableOpen || modelRecord.name != lastRecordName>
+            <#if tableOpen>
               </table><br />
             </#if>
             <table class="basic-table hover-bar" cellspacing="0">
@@ -99,6 +100,7 @@ under the License.
                 </#list>
               </tr>
             <#local lastRecordName = modelRecord.name>
+            <#local tableOpen = true>
           </#if>
 
           <tr>
@@ -115,7 +117,9 @@ under the License.
             <@displayrecords records = record.getChildRecords()/>
           </#if>
         </#list>
-        </table>
+        <#if tableOpen>
+          </table>
+        </#if>
     </#macro>
 
       <#if dataFile?has_content && modelDataFile?has_content && !parameters.ENTITYXML_FILE_SAVE?has_content && !parameters.DATAFILE_SAVE?has_content>
