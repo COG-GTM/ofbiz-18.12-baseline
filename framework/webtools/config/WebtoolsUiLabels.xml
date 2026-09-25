@@ -1459,6 +1459,9 @@
         <value xml:lang="zh">实体文件保存到：</value>
         <value xml:lang="zh-TW">資料實體檔保存到:</value>
     </property>
+    <property key="WebtoolsDataFileInvalidSaveName">
+        <value xml:lang="en">Invalid output file name: enter a bare file name (letters, digits, '-', '_' and one optional extension). Files are written under runtime/output/datafile.</value>
+    </property>
     <property key="WebtoolsDataFileMainTitle">
         <value xml:lang="de">Arbeiten mit Datendateien</value>
         <value xml:lang="en">Work With Data Files</value>
@@ -1494,6 +1497,12 @@
         <value xml:lang="vi">Tên tập tin dữ liệu hoặc URL</value>
         <value xml:lang="zh">数据文件名称或网址</value>
         <value xml:lang="zh-TW">資料檔案名稱或網址</value>
+    </property>
+    <property key="WebtoolsDataFileSaveError">
+        <value xml:lang="en">An error occurred while saving the file.</value>
+    </property>
+    <property key="WebtoolsDataFileSaveNameHint">
+        <value xml:lang="en">File name only; saved under runtime/output/datafile</value>
     </property>
     <property key="WebtoolsDataFileSavedTo">
         <value xml:lang="de">Datendatei gespeichert in:</value>

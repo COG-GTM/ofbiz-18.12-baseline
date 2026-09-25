@@ -49,11 +49,13 @@ under the License.
           </tr>
           <tr>
             <td class="label">${uiLabelMap.WebtoolsDataSaveToFile}</td>
-            <td><input name="DATAFILE_SAVE" type="text" size="60" value="${parameters.DATAFILE_SAVE!}"/></td>
+            <td><input name="DATAFILE_SAVE" type="text" size="60" value="${parameters.DATAFILE_SAVE!}"/>
+            <span class="tooltip">${uiLabelMap.WebtoolsDataFileSaveNameHint}</span></td>
           </tr>
           <tr>
             <td class="label">${uiLabelMap.WebtoolsDataSaveToXml}</td>
-            <td><input name="ENTITYXML_FILE_SAVE" type="text" size="60" value="${parameters.ENTITYXML_FILE_SAVE!}" /></td>
+            <td><input name="ENTITYXML_FILE_SAVE" type="text" size="60" value="${parameters.ENTITYXML_FILE_SAVE!}" />
+            <span class="tooltip">${uiLabelMap.WebtoolsDataFileSaveNameHint}</span></td>
           </tr>
           <tr>
             <td class="label"></td>
@@ -73,12 +75,13 @@ under the License.
       </#if>
 
     <#macro displayrecords records>
-        <#local lastRecordName = null>
+        <#local lastRecordName = "">
+        <#local tableOpen = false>
         <#list records as record>
           <#local modelRecord = record.getModelRecord()>
           <#-- if record is different than the last displayed, make a new table and header row -->
-          <#if !(modelRecord.name == lastRecordName)>
-            <#if lastRecordName??>
+          <#if !tableOpen || modelRecord.name != lastRecordName>
+            <#if tableOpen>
               </table><br />
             </#if>
             <table class="basic-table hover-bar" cellspacing="0">
@@ -96,16 +99,17 @@ under the License.
                   <td><b>${modelField.name}</b></td>
                 </#list>
               </tr>
-            <#assign lastRecordName = modelRecord.name>
+            <#local lastRecordName = modelRecord.name>
+            <#local tableOpen = true>
           </#if>
 
           <tr>
             <#list modelRecord.fields as modelField>
-              <#local value = record.get(modelField.name)>
+              <#local value = record.get(modelField.name)!>
               <#if value?has_content>
                 <td>${value}</td>
               <#else>
-                <td>${modelField.defaultValue}</td>
+                <td>${modelField.defaultValue!}</td>
               </#if>
             </#list>
           </tr>
@@ -113,10 +117,12 @@ under the License.
             <@displayrecords records = record.getChildRecords()/>
           </#if>
         </#list>
-        </table>
+        <#if tableOpen>
+          </table>
+        </#if>
     </#macro>
 
-      <#if dataFile?has_content && modelDataFile?has_content && (!parameters.ENTITYXML_FILE_SAVE?has_content || parameters.ENTITYXML_FILE_SAVE.length() == 0) && (parameters.DATAFILE_SAVE == null || parameters.DATAFILE_SAVE.length() == 0)>
+      <#if dataFile?has_content && modelDataFile?has_content && !parameters.ENTITYXML_FILE_SAVE?has_content && !parameters.DATAFILE_SAVE?has_content>
         <hr />
         <table class="basic-table" cellspacing="0">
           <tr class="header-row">

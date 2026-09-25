@@ -19,12 +19,54 @@
 
 import java.util.*
 import java.net.*
+import java.nio.file.Files
+import java.util.regex.Pattern
 import org.apache.ofbiz.security.*
 import org.apache.ofbiz.base.util.*
 import org.apache.ofbiz.datafile.*
 
+final String MODULE = "ViewDataFile.groovy"
+
 uiLabelMap = UtilProperties.getResourceBundleMap("WebtoolsUiLabels", locale)
 messages = []
+
+if (!security.hasPermission("ENTITY_MAINT", session) || !security.hasPermission("DATAFILE_MAINT", session)) {
+    messages.add(uiLabelMap.WebtoolsPermissionError)
+    context.messages = messages
+    return
+}
+
+// Output files are only ever written under this directory; the request supplies a bare file name, never a path.
+final String outputDirName = "runtime/output/datafile"
+final Pattern safeFileName = Pattern.compile('^[A-Za-z0-9_-]{1,200}(\\.[A-Za-z0-9]{1,10})?$')
+
+// Validates fileName, runs writer(File) against it inside the output directory and returns the
+// path (relative to ofbiz.home) that was written, or null after adding an error message.
+saveOutputFile = { String fileName, Closure writer ->
+    if (!fileName || !safeFileName.matcher(fileName).matches()) {
+        messages.add(uiLabelMap.WebtoolsDataFileInvalidSaveName)
+        return null
+    }
+    try {
+        File outputDir = new File(System.getProperty("ofbiz.home"), outputDirName)
+        if (Files.isSymbolicLink(outputDir.toPath())) {
+            throw new IOException("Output directory is a symbolic link")
+        }
+        Files.createDirectories(outputDir.toPath())
+        File canonicalDir = outputDir.getCanonicalFile()
+        File outFile = new File(canonicalDir, fileName)
+        if (!canonicalDir.equals(outFile.getCanonicalFile().getParentFile()) || Files.isSymbolicLink(outFile.toPath())) {
+            throw new IOException("Refusing to write outside the output directory")
+        }
+        writer(outFile)
+        return outputDirName + "/" + outFile.getName()
+    }
+    catch (Exception e) {
+        Debug.logError(e, "Error writing " + outputDirName + "/" + fileName, MODULE)
+        messages.add(uiLabelMap.WebtoolsDataFileSaveError)
+        return null
+    }
+}
 
 dataFileSave = request.getParameter("DATAFILE_SAVE")
 
@@ -81,23 +123,16 @@ if (dataFile) {
 }
 
 if (dataFile && dataFileSave) {
-    try {
-        dataFile.writeDataFile(dataFileSave)
-        messages.add(uiLabelMap.WebtoolsDataFileSavedTo + dataFileSave)
-    }
-    catch (Exception e) {
-        messages.add(e.getMessage())
+    savedPath = saveOutputFile(dataFileSave) { File outFile -> dataFile.writeDataFile(outFile.getPath()) }
+    if (savedPath) {
+        messages.add(uiLabelMap.WebtoolsDataFileSavedTo + savedPath)
     }
 }
 
 if (dataFile && entityXmlFileSave) {
-    try {
-        //dataFile.writeDataFile(entityXmlFileSave)
-        DataFile2EntityXml.writeToEntityXml(entityXmlFileSave, dataFile)
-        messages.add(uiLabelMap.WebtoolsDataEntityFileSavedTo + entityXmlFileSave)
-    }
-    catch (Exception e) {
-        messages.add(e.getMessage())
+    savedPath = saveOutputFile(entityXmlFileSave) { File outFile -> DataFile2EntityXml.writeToEntityXml(outFile.getPath(), dataFile) }
+    if (savedPath) {
+        messages.add(uiLabelMap.WebtoolsDataEntityFileSavedTo + savedPath)
     }
 }
 context.messages = messages
