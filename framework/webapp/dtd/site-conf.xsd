@@ -722,8 +722,9 @@ under the License.
         <xs:attribute type="xs:boolean" name="auth" default="true">
             <xs:annotation>
                 <xs:documentation>
-                    If auth=true, RequestHandler.renderView requires an active login to access the view-map.
-                    If direct-view-rendering-with-auth=false, no active login is required.
+                    If auth=true (the default), RequestHandler.renderView requires an active login before rendering this view,
+                    regardless of which request-map (or override view URI) selected it.
+                    Set auth=false only for views that are intentionally rendered anonymously (login, error, lookups on the login page, etc.).
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

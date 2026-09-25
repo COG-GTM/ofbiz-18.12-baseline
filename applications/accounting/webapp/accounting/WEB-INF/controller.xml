@@ -857,7 +857,7 @@ under the License.
 
     <!-- =============== Fixed Asset mapping =================-->
     <request-map uri="ListFixedAssets"><security https="true" auth="true"/><response name="success" type="view" value="ListFixedAssets"/></request-map>
-    <request-map uri="FixedAssetSearchResults"><security https="true" auth="false"/><response name="success" type="view" value="FixedAssetSearchResults"/></request-map>
+    <request-map uri="FixedAssetSearchResults"><security https="true" auth="true"/><response name="success" type="view" value="FixedAssetSearchResults"/></request-map>
     <request-map uri="EditFixedAsset"><security https="true" auth="true"/><response name="success" type="view" value="EditFixedAsset"/></request-map>
     <request-map uri="createFixedAsset">
         <security https="true" auth="true"/>
@@ -1054,7 +1054,7 @@ under the License.
     
     <!-- =============== Budget mapping =================-->
     <request-map uri="ListBudgets"><security https="true" auth="true"/><response name="success" type="view" value="ListBudgets"/></request-map>
-    <request-map uri="BudgetSearchResults"><security https="true" auth="false"/><response name="success" type="view" value="BudgetSearchResults"/></request-map>
+    <request-map uri="BudgetSearchResults"><security https="true" auth="true"/><response name="success" type="view" value="BudgetSearchResults"/></request-map>
     <request-map uri="EditBudget"><security https="true" auth="true"/><response name="success" type="view" value="EditBudget"/></request-map>
     <request-map uri="BudgetOverview"><security https="true" auth="true"/><response name="success" type="view" value="BudgetOverview"/></request-map>
     <request-map uri="EditBudgetItems"><security https="true" auth="true"/><response name="success" type="view" value="EditBudgetItems"/></request-map>
@@ -2013,7 +2013,7 @@ under the License.
         <response name="error" type="request" value="json"/>
     </request-map>
     <request-map uri="reconcileFinAccountTrans">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service-multi" invoke="reconcileFinAccountTrans"/>
         <response name="success" type="view" value="BankReconciliation"/>
         <response name="error" type="view" value="BankReconciliation"/>
@@ -2049,7 +2049,7 @@ under the License.
         <response name="error" type="view" value="ViewGlReconciliationWithTransaction"/>
     </request-map>
     <request-map uri="assignGlRecToFinAccTrans">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service-multi" invoke="assignGlRecToFinAccTrans"/>
         <response name="success" type="view" value="FindFinAccountTrans"/>
         <response name="error" type="view" value="FindFinAccountTrans"/>

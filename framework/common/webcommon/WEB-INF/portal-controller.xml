@@ -23,7 +23,7 @@ under the License.
     <description>Portal ControlServlet Configuration File</description>
 
     <request-map uri="main">
-        <security https="false" auth="false"/>
+        <security https="true" auth="true"/>
         <response name="success" type="view" value="showPortalPage"/>
     </request-map>
     <!-- Portlet show requests -->
@@ -157,12 +157,12 @@ under the License.
         <response name="error" type="request" value="ManagePortalPages"/>
     </request-map>
     <request-map uri="editPortalPageColumnWidth">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <response name="success" type="view" value="editPortalPageColumnWidth" save-last-view="true"/>
     </request-map>
     <request-map uri="LookupPortalPage"><security https="true" auth="true"/><response name="success" type="view" value="LookupPortalPage"/></request-map>
     <!-- View Mappings -->
-    <view-map name="showPortalPage" type="screen" page="component://common/widget/PortalPageScreens.xml#showPortalPage" auth="false"/>
+    <view-map name="showPortalPage" type="screen" page="component://common/widget/PortalPageScreens.xml#showPortalPage"/>
     <view-map name="showPortlet" type="screen" page="component://common/widget/PortalPageScreens.xml#showPortlet"/>
     <view-map name="showPortletMainDecorator" type="screen" page="component://common/widget/PortalPageScreens.xml#showPortletMainDecorator"/>
     <view-map name="showPortletSimpleDecorator" type="screen" page="component://common/widget/PortalPageScreens.xml#showPortletSimpleDecorator"/>
@@ -170,6 +170,6 @@ under the License.
     <view-map name="NewPortalPage" type="screen" page="component://common/widget/PortalPageScreens.xml#NewPortalPage"/>
     <view-map name="addPortlet" type="screen" page="component://common/widget/PortalPageScreens.xml#AddPortlet"/>
     <view-map name="editPortalPortletAttributes" type="screen" page="component://common/widget/PortalPageScreens.xml#EditPortalPortletAttributes"/>
-    <view-map name="editPortalPageColumnWidth" type="screen" page="component://common/widget/PortalPageScreens.xml#EditPortalPageColumnWidth" auth="false"/>
+    <view-map name="editPortalPageColumnWidth" type="screen" page="component://common/widget/PortalPageScreens.xml#EditPortalPageColumnWidth"/>
     <view-map name="LookupPortalPage" type="screen" page="component://common/widget/LookupScreens.xml#LookupPortalPage"/>
 </site-conf>
