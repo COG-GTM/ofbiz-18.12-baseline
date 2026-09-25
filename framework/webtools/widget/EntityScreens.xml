@@ -52,11 +52,18 @@ under the License.
                 </decorator-screen>
             </widgets>
             <fail-widgets>
-                <decorator-screen name="CommonEntityDecorator" location="${parameters.mainDecoratorLocation}">
-                    <decorator-section name="body">
-                        <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
-                    </decorator-section>
-                </decorator-screen>
+                <section>
+                    <actions>
+                        <script location="component://webtools/groovyScripts/entity/EntityMaintPermissionDenied.groovy"/>
+                    </actions>
+                    <widgets>
+                        <decorator-screen name="CommonEntityDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                </section>
             </fail-widgets>
         </section>
     </screen>
@@ -106,11 +113,18 @@ under the License.
                 </decorator-screen>
             </widgets>
             <fail-widgets>
-                <decorator-screen name="CommonImportExportDecorator" location="${parameters.mainDecoratorLocation}">
-                    <decorator-section name="body">
-                        <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
-                    </decorator-section>
-                </decorator-screen>
+                <section>
+                    <actions>
+                        <script location="component://webtools/groovyScripts/entity/EntityMaintPermissionDenied.groovy"/>
+                    </actions>
+                    <widgets>
+                        <decorator-screen name="CommonImportExportDecorator" location="${parameters.mainDecoratorLocation}">
+                            <decorator-section name="body">
+                                <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
+                            </decorator-section>
+                        </decorator-screen>
+                    </widgets>
+                </section>
             </fail-widgets>
         </section>
     </screen>
