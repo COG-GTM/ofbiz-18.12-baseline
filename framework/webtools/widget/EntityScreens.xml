@@ -23,37 +23,43 @@ under the License.
 
     <screen name="EntitySQLProcessor">
         <section>
-            <condition>
-                <if-has-permission permission="ENTITY_MAINT"/>
-            </condition>
             <actions>
                 <set field="titleProperty" value="PageTitleEntitySQLProcessor"/>
                 <set field="tabButtonItem" value="EntitySQLProcessor"/>
                 <set field="labelTitleProperty" value="PageTitleEntitySQLProcessor"/>
-                <set field="sqlCommand" from-field="parameters.sqlCommand"/>
-                <set field="selGroup" from-field="parameters.group"/>
-                <set field="rowLimit" from-field="parameters.rowLimit" type="Integer"/>
-                <set field="parameters.TRANSACTION_TIMEOUT" value="7200"/>
-
-                <script location="component://webtools/groovyScripts/entity/EntitySQLProcessor.groovy"/>
             </actions>
             <widgets>
                 <decorator-screen name="CommonEntityDecorator" location="${parameters.mainDecoratorLocation}">
                     <decorator-section name="body">
-                        <screenlet>
-                            <include-form name="EntitySQLCommand" location="component://webtools/widget/EntityForms.xml"/>
-                        </screenlet>
-                        <screenlet>
-                            <platform-specific>
-                                <html><html-template location="component://webtools/template/entity/EntitySQLProcessor.ftl"/></html>
-                            </platform-specific>
-                        </screenlet>
+                        <section>
+                            <condition>
+                                <if-has-permission permission="ENTITY_MAINT"/>
+                            </condition>
+                            <actions>
+                                <set field="sqlCommand" from-field="parameters.sqlCommand"/>
+                                <set field="selGroup" from-field="parameters.group"/>
+                                <set field="rowLimit" from-field="parameters.rowLimit" type="Integer"/>
+                                <set field="parameters.TRANSACTION_TIMEOUT" value="7200"/>
+
+                                <script location="component://webtools/groovyScripts/entity/EntitySQLProcessor.groovy"/>
+                            </actions>
+                            <widgets>
+                                <screenlet>
+                                    <include-form name="EntitySQLCommand" location="component://webtools/widget/EntityForms.xml"/>
+                                </screenlet>
+                                <screenlet>
+                                    <platform-specific>
+                                        <html><html-template location="component://webtools/template/entity/EntitySQLProcessor.ftl"/></html>
+                                    </platform-specific>
+                                </screenlet>
+                            </widgets>
+                            <fail-widgets>
+                                <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
+                            </fail-widgets>
+                        </section>
                     </decorator-section>
                 </decorator-screen>
             </widgets>
-            <fail-widgets>
-                <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
-            </fail-widgets>
         </section>
     </screen>
     <screen name="EntityExportAll">

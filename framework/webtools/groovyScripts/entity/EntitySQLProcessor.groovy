@@ -53,7 +53,8 @@ mgr = delegator.getModelGroupReader()
 for (String group : mgr.getGroupNames(delegator.getDelegatorName())) groups.add(0,["group":group]) //use for list-option in widget drop-down
 
 if (sqlCommand && selGroup) {
-    Debug.logInfo("User [${userLoginId}] executing raw SQL on group [${selGroup}]: ${sqlCommand}", module)
+    sqlVerb = sqlCommand.trim().split(/\s+/)[0].toUpperCase()
+    Debug.logInfo("User [${userLoginId}] executing raw SQL on group [${selGroup}]: statement type [${sqlVerb}], length ${sqlCommand.length()}", module)
     du = new SQLProcessor(delegator, delegator.getGroupHelperInfo(selGroup))
     try {
         if (sqlCommand.toUpperCase().startsWith("SELECT")) {
