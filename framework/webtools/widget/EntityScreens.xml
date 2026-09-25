@@ -23,6 +23,9 @@ under the License.
 
     <screen name="EntitySQLProcessor">
         <section>
+            <condition>
+                <if-has-permission permission="ENTITY_MAINT"/>
+            </condition>
             <actions>
                 <set field="titleProperty" value="PageTitleEntitySQLProcessor"/>
                 <set field="tabButtonItem" value="EntitySQLProcessor"/>
@@ -48,6 +51,9 @@ under the License.
                     </decorator-section>
                 </decorator-screen>
             </widgets>
+            <fail-widgets>
+                <label style="h3">${uiLabelMap.WebtoolsPermissionError}</label>
+            </fail-widgets>
         </section>
     </screen>
     <screen name="EntityExportAll">

@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import org.apache.ofbiz.base.util.Debug
 import org.apache.ofbiz.entity.jdbc.SQLProcessor
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
@@ -26,17 +27,33 @@ import java.util.Iterator
 import org.apache.ofbiz.entity.*
 import org.apache.ofbiz.entity.model.ModelGroupReader
 
+module = "EntitySQLProcessor.groovy"
+
 sqlCommand = context.request.getParameter("sqlCommand")
+selGroup = context.selGroup
+userLoginId = context.userLogin?.userLoginId
 
 resultMessage = ""
 rs = null
 columns = []
 records = []
-mgr = delegator.getModelGroupReader()
 groups = []
+
+if (!security.hasPermission("ENTITY_MAINT", session)) {
+    Debug.logWarning("Denied raw SQL execution for user [${userLoginId}] on group [${selGroup}]: missing ENTITY_MAINT permission", module)
+    context.groups = groups
+    context.resultMessage = "Not executed: ENTITY_MAINT permission required"
+    context.columns = columns
+    context.records = records
+    context.sqlCommand = null
+    return
+}
+
+mgr = delegator.getModelGroupReader()
 for (String group : mgr.getGroupNames(delegator.getDelegatorName())) groups.add(0,["group":group]) //use for list-option in widget drop-down
 
 if (sqlCommand && selGroup) {
+    Debug.logInfo("User [${userLoginId}] executing raw SQL on group [${selGroup}]: ${sqlCommand}", module)
     du = new SQLProcessor(delegator, delegator.getGroupHelperInfo(selGroup))
     try {
         if (sqlCommand.toUpperCase().startsWith("SELECT")) {
