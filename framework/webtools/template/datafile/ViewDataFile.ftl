@@ -118,7 +118,7 @@ under the License.
         </table>
     </#macro>
 
-      <#if dataFile?has_content && modelDataFile?has_content && (!parameters.ENTITYXML_FILE_SAVE?has_content || parameters.ENTITYXML_FILE_SAVE.length() == 0) && (parameters.DATAFILE_SAVE == null || parameters.DATAFILE_SAVE.length() == 0)>
+      <#if dataFile?has_content && modelDataFile?has_content && !parameters.ENTITYXML_FILE_SAVE?has_content && !parameters.DATAFILE_SAVE?has_content>
         <hr />
         <table class="basic-table" cellspacing="0">
           <tr class="header-row">
