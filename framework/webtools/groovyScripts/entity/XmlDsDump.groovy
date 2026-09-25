@@ -24,6 +24,19 @@ import org.apache.ofbiz.entity.model.*
 import org.apache.ofbiz.entity.util.*
 import org.apache.ofbiz.entity.transaction.*
 import org.apache.ofbiz.entity.condition.*
+import org.apache.ofbiz.webtools.EntityExportPath
+
+context.numberOfEntities = 0
+context.results = []
+
+if (!security.hasPermission("ENTITY_MAINT", session)) {
+    Debug.logWarning("Entity XML export denied: user [${userLogin?.userLoginId}] lacks ENTITY_MAINT", "XmlDsDump")
+    request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage("WebtoolsUiLabels", "WebtoolsPermissionMaint", locale))
+    return
+}
+
+exportBaseDir = EntityExportPath.getBaseDir()
+context.exportBaseDir = exportBaseDir.getPath()
 
 outpath = parameters.outpath
 filename = parameters.filename
@@ -31,6 +44,21 @@ maxRecStr = parameters.maxrecords
 entitySyncId = parameters.entitySyncId
 passedEntityNames = null
 if (parameters.entityName) passedEntityNames = parameters.entityName instanceof Collection ? parameters.entityName as TreeSet : [parameters.entityName] as TreeSet
+
+tobrowser = parameters.tobrowser != null
+context.tobrowser = tobrowser
+
+outdir = null
+outfile = null
+if (!tobrowser) {
+    outdir = EntityExportPath.resolveDir(outpath)
+    outfile = filename ? EntityExportPath.resolveFile(outdir, filename) : null
+}
+if (!tobrowser && (!outdir || (filename && !outfile))) {
+    Debug.logWarning("Entity XML export rejected for user [${userLogin?.userLoginId}]: outpath [${outpath}] filename [${filename}] not allowed under [${exportBaseDir}]", "XmlDsDump")
+    request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage("WebtoolsUiLabels", "WebtoolsExportPathNotAllowed", [exportBaseDir: exportBaseDir.getPath()], locale))
+    return
+}
 
 // get the max records per file setting and convert to a int
 maxRecordsPerFile = 0
@@ -151,8 +179,6 @@ if (entitySyncId) {
     passedEntityNames = org.apache.ofbiz.entityext.synchronization.EntitySyncContext.getEntitySyncModelNamesToUse(dispatcher, entitySyncId)
 }
 checkAll = "true".equals(parameters.checkAll)
-tobrowser = parameters.tobrowser != null
-context.tobrowser = tobrowser
 
 entityFromCond = null
 entityThruCond = null
@@ -174,6 +200,10 @@ if (entityFromCond && entityThruCond) {
 reader = delegator.getModelReader()
 modelEntities = reader.getEntityCache().values() as TreeSet
 context.modelEntities = modelEntities
+knownEntityNames = reader.getEntityNames() as Set
+if (passedEntityNames) {
+    passedEntityNames = passedEntityNames.findAll { knownEntityNames.contains(it) }
+}
 
 if (passedEntityNames) {
     if (tobrowser) {
@@ -186,11 +216,11 @@ if (passedEntityNames) {
         numberWritten = 0
     
         // single file
-        if (filename && numberOfEntities) {
-            if (outpath && !(filename.contains("/") && filename.contains("\\"))) {
-                filename = outpath + File.separator + filename;
+        if (outfile && numberOfEntities) {
+            if (!outdir.exists()) {
+                outdir.mkdirs()
             }
-            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename), "UTF-8")))
+            writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outfile), "UTF-8")))
             writer.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
             writer.println("<entity-engine-xml>")
     
@@ -239,10 +269,9 @@ if (passedEntityNames) {
         results = []
         fileNumber = 1
         context.results = results
-        if (outpath && !filename) {
-            outdir = new File(outpath)
+        if (outpath && !outfile) {
             if (!outdir.exists()) {
-                outdir.mkdir()
+                outdir.mkdirs()
             }
             if (outdir.isDirectory() && outdir.canWrite()) {
                 passedEntityNames.each { curEntityName ->
@@ -328,6 +357,4 @@ if (passedEntityNames) {
             }
         }
     }
-} else {
-    context.numberOfEntities = 0
 }

@@ -458,6 +458,9 @@ under the License.
     </screen>
     <screen name="xmldsdump">
         <section>
+            <condition>
+                <if-has-permission permission="ENTITY_MAINT"/>
+            </condition>
             <actions>
                 <property-map resource="WebtoolsUiLabels" map-name="uiLabelMap" global="true"/>
                 <set field="titleProperty" value="PageTitleEntityExport"/>
@@ -475,6 +478,9 @@ under the License.
                     </decorator-section>
                 </decorator-screen>
             </widgets>
+            <fail-widgets>
+                <label style="h3">${uiLabelMap.WebtoolsPermissionMaint}</label>
+            </fail-widgets>
         </section>
     </screen>
 

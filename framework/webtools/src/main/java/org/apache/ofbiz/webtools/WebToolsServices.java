@@ -485,9 +485,21 @@ public class WebToolsServices {
         List<String> results = new LinkedList<String>();
 
         if (UtilValidate.isNotEmpty(outpath)) {
-            File outdir = new File(outpath);
+            File outdir;
+            String exportBaseDir;
+            try {
+                exportBaseDir = EntityExportPath.getBaseDir().getPath();
+                outdir = EntityExportPath.resolveDir(outpath);
+            } catch (IOException e) {
+                Debug.logError(e, module);
+                return ServiceUtil.returnError(e.getMessage());
+            }
+            if (outdir == null) {
+                return ServiceUtil.returnError(UtilProperties.getMessage(resource, "WebtoolsExportPathNotAllowed",
+                        UtilMisc.toMap("exportBaseDir", exportBaseDir), locale));
+            }
             if (!outdir.exists()) {
-                outdir.mkdir();
+                outdir.mkdirs();
             }
             if (outdir.isDirectory() && outdir.canWrite()) {
                 Set<String> passedEntityNames;

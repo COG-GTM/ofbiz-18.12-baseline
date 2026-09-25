@@ -27,6 +27,7 @@ under the License.
     </#list>
 </#if>
 <hr />
+<p>${uiLabelMap.WebtoolsExportDirectoryNote} <code>${Static["org.apache.ofbiz.webtools.EntityExportPath"].getBaseDir().getPath()}</code></p>
 <form class="basic-form" method="post" action="<@ofbizUrl>entityExportAll</@ofbizUrl>">
     <table class="basic-table" cellspacing="0">
         <tbody>
