@@ -29,6 +29,12 @@ import org.codehaus.groovy.control.CompilerConfiguration
 import org.codehaus.groovy.control.MultipleCompilationErrorsException
 import org.codehaus.groovy.control.ErrorCollector
 
+if (!security.hasPermission("ENTITY_MAINT", session)) {
+    logWarning("ProgramExport denied: user [${userLogin?.userLoginId}] lacks ENTITY_MAINT permission")
+    request.setAttribute("_ERROR_MESSAGE_", "Not executed for security reason")
+    return
+}
+
 String groovyProgram = null
 recordValues = []
 errMsgList = []
