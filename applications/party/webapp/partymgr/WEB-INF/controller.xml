@@ -1511,7 +1511,7 @@ under the License.
     <view-map name="LookupReturnHeader" type="screen" page="component://order/widget/ordermgr/LookupScreens.xml#LookupReturnHeader"/>
     <view-map name="LookupProduct" type="screen" page="component://product/widget/catalog/LookupScreens.xml#LookupProduct"/>
 
-    <view-map name="ViewSimpleContent" page="" type="simplecontent"/>
+    <view-map name="ViewSimpleContent" page="" type="simplecontent" auth="false"/>
 
     <view-map name="AddressMatchMap" type="screen" page="component://party/widget/partymgr/PartyScreens.xml#AddressMatchMap"/>
     <view-map name="FindAddressMatch" type="screen" page="component://party/widget/partymgr/PartyScreens.xml#FindAddressMatch"/>

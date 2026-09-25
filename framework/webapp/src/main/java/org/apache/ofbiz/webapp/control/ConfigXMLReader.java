@@ -159,7 +159,7 @@ public class ConfigXMLReader {
         }
     }
 
-    /** Loads the XML file and returns the root element 
+    /** Loads the XML file and returns the root element
      * @throws WebAppConfigurationException */
     private static Element loadDocument(URL location) throws WebAppConfigurationException {
         try {
@@ -420,7 +420,6 @@ public class ConfigXMLReader {
                 this.viewMapMap.put(viewMap.name, viewMap);
             }
         }
-
     }
 
     public static class Event {
@@ -562,7 +561,6 @@ public class ConfigXMLReader {
     }
 
     public static class ViewMap {
-        public String viewMap;
         public String name;
         public String page;
         public String type;
@@ -573,6 +571,7 @@ public class ConfigXMLReader {
         public String strictTransportSecurity;
         public String description;
         public boolean noCache = false;
+        public boolean securityAuth = false;
 
         public ViewMap(Element viewMapElement) {
             this.name = viewMapElement.getAttribute("name");
@@ -581,6 +580,7 @@ public class ConfigXMLReader {
             this.info = viewMapElement.getAttribute("info");
             this.contentType = viewMapElement.getAttribute("content-type");
             this.noCache = "true".equals(viewMapElement.getAttribute("no-cache"));
+            this.securityAuth = "true".equals(viewMapElement.getAttribute("auth"));
             this.encoding = viewMapElement.getAttribute("encoding");
             this.xFrameOption = viewMapElement.getAttribute("x-frame-options");
             this.strictTransportSecurity = viewMapElement.getAttribute("strict-transport-security");

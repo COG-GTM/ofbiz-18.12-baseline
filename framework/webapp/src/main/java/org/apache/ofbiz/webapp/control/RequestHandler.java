@@ -1010,6 +1010,22 @@ public class RequestHandler {
             throw new RequestHandlerException("No definition found for view with name [" + view + "]");
         }
 
+        // Perform security check.
+        if (viewMap.securityAuth && UtilValidate.isEmpty(userLogin)) {
+            ConfigXMLReader.Event checkLoginEvent = ccfg.getRequestMapMap().getFirst("checkLogin").event;
+            String checkLoginReturnString = null;
+
+            try {
+                checkLoginReturnString = this.runEvent(req, resp, checkLoginEvent, null, "security-auth");
+            } catch (EventHandlerException e) {
+                throw new RequestHandlerException(e.getMessage(), e);
+            }
+
+            if (!"success".equalsIgnoreCase(checkLoginReturnString)) {
+                throw new RequestHandlerException("An active login is required for view with name [" + view + "]");
+            }
+        }
+
         String nextPage;
 
         if (viewMap.page == null) {

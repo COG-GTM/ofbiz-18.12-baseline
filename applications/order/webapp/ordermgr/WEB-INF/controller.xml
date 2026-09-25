@@ -39,7 +39,7 @@ under the License.
 
     <!-- Request Mappings -->
     <request-map uri="view">
-        <security https="false" auth="false"/>
+        <security https="true" auth="true"/>
         <response name="success" type="request" value="main"/>
     </request-map>
 
@@ -229,7 +229,7 @@ under the License.
     </request-map>
 
     <request-map uri="getConfigDetailsEvent">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.ShoppingCartEvents" invoke="getConfigDetailsEvent"/>
         <response name="success" type="request" value="json"/>
         <response name="error" type="request" value="json"/>
@@ -596,7 +596,7 @@ under the License.
         <response name="success" type="view" value="AddGiftCertificate"/>
     </request-map>
     <request-map uri="addGiftCertificateSurvey">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="java" invoke="createSurveyResponseAndRestoreParameters" path="org.apache.ofbiz.content.survey.SurveyEvents"/>
         <response name="success" type="request" value="additem"/>
         <response name="error" type="view" value="AddGiftCertificate"/>
@@ -647,6 +647,7 @@ under the License.
     </request-map>
 
     <request-map uri="setDesiredAlternateGwpProductId">
+        <security https="true" auth="true"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.ShoppingCartEvents" invoke="setDesiredAlternateGwpProductId"/>
         <response name="success" type="view" value="showcart"/>
         <response name="error" type="view" value="showcart"/>
@@ -667,6 +668,7 @@ under the License.
         <response name="error" type="request" value="orderentry"/>
     </request-map>
     <request-map uri="quickadd">
+        <security https="true" auth="true"/>
         <response name="success" type="view" value="quickadd"/>
     </request-map>
 
@@ -693,7 +695,7 @@ under the License.
     </request-map>
 
     <request-map uri="addCategoryDefaults">
-        <security https="false" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.ShoppingCartEvents" invoke="addCategoryDefaults"/>
         <response name="success" type="view" value="showcart"/>
         <response name="error" type="view" value="showcart"/>
@@ -764,19 +766,19 @@ under the License.
     <!-- For checkout steps that use finalizeOrder: This request chain is for calculating shipping & tax before getting to the payments page, so that the visitor
         will know the full shipping & tax charges when trying to split payments between various payment methods -->
     <request-map uri="calcShippingBeforePayment">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.shipping.ShippingEvents" invoke="getShipEstimate"/>
         <response name="success" type="request" value="calcTaxBeforePayment"/>
         <response name="error" type="request" value="orderentry"/>
     </request-map>
     <request-map uri="calcTaxBeforePayment">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.CheckOutEvents" invoke="calcTax"/>
         <response name="success" type="request" value="validatePaymentMethodsBeforePayment"/>
         <response name="error" type="request" value="orderentry"/>
     </request-map>
     <request-map uri="validatePaymentMethodsBeforePayment">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.CheckOutEvents" invoke="checkPaymentMethods"/>
         <response name="success" type="view" value="billsetting"/>
         <response name="error" type="request" value="orderentry"/>
@@ -879,13 +881,13 @@ under the License.
     </request-map>
 
     <request-map uri="calcShipping">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.shipping.ShippingEvents" invoke="getShipEstimate"/>
         <response name="success" type="request" value="calcTax"/>
         <response name="error" type="request" value="orderentry"/>
     </request-map>
     <request-map uri="calcTax">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.CheckOutEvents" invoke="calcTax"/>
         <response name="success" type="view" value="confirm"/>
         <response name="error" type="request" value="orderentry"/>
@@ -997,20 +999,20 @@ under the License.
         <response name="error" type="view" value="confirm"/>
     </request-map>
     <request-map uri="checkBlackList">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.CheckOutEvents" invoke="checkOrderBlacklist"/>
         <response name="success" type="request" value="processpayment"/>
         <response name="failed" type="request" value="failedBlacklist"/>
         <response name="error" type="view" value="confirm"/>
     </request-map>
     <request-map uri="failedBlacklist">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.CheckOutEvents" invoke="failedBlacklistCheck"/>
         <response name="success" type="view" value="main"/>
         <response name="error" type="view" value="main"/>
     </request-map>
     <request-map uri="processpayment">
-        <security direct-request="false"/>
+        <security https="false" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.CheckOutEvents" invoke="processPayment"/>
         <response name="success" type="request" value="clearcart"/>
         <response name="fail" type="view" value="confirm"/>
@@ -1023,7 +1025,7 @@ under the License.
         <response name="error" type="view" value="confirm"/>
     </request-map>
     <request-map uri="clearpocart">
-        <security https="true" direct-request="false"/>
+        <security https="true" auth="false" direct-request="false"/>
         <event type="java" path="org.apache.ofbiz.order.shoppingcart.ShoppingCartEvents" invoke="destroyCart"/>
         <response name="success" type="request-redirect" value="orderview">
             <redirect-parameter name="orderId"/>
@@ -1031,7 +1033,7 @@ under the License.
         <response name="error" type="view" value="confirm"/>
     </request-map>
     <request-map uri="emailorder">
-        <security https="true" direct-request="false"/>
+        <security https="true" auth="false" direct-request="false"/>
         <event type="service" path="async" invoke="sendOrderConfirmation"/>
         <response name="success" type="request-redirect" value="orderview">
             <redirect-parameter name="orderId"/>
@@ -1276,7 +1278,10 @@ under the License.
     </request-map>
 
     <!-- =============== CustRequest mapping =================-->
-    <request-map uri="FindRequest"><security https="true" auth="true"/><response name="success" type="view" value="FindRequest"/></request-map>
+    <request-map uri="FindRequest">
+        <security https="true" auth="true"/>
+        <response name="success" type="view" value="FindRequest"/>
+    </request-map>
     <request-map uri="ViewRequest"><security https="true" auth="true"/><response name="success" type="view" value="ViewRequest"/></request-map>
     <request-map uri="EditRequest"><security https="true" auth="true"/><response name="success" type="view" value="EditRequest"/></request-map>
     <request-map uri="EditRequestCustomer"><security https="true" auth="true"/><response name="success" type="view" value="EditRequestCustomer"/></request-map>
@@ -1743,7 +1748,7 @@ under the License.
     </request-map>
 
     <request-map uri="crosssell">
-        <security https="false" auth="false"/>
+        <security https="true" auth="true"/>
         <response name="success" type="view" value="product"/>
     </request-map>
 
@@ -1919,7 +1924,7 @@ under the License.
     <!-- View Mappings -->
     <view-map name="LookupProductCategory" type="screen" page="component://product/widget/catalog/LookupScreens.xml#LookupProductCategory"/>
 
-    <view-map name="main" type="screen" page="component://order/widget/ordermgr/OrderViewScreens.xml#Main"/>
+    <view-map name="main" type="screen" page="component://order/widget/ordermgr/OrderViewScreens.xml#Main" auth="false"/>
 
     <view-map name="orderstats" type="screen" page="component://order/widget/ordermgr/OrderViewScreens.xml#OrderStats"/>
     <view-map name="findorders" type="screen" page="component://order/widget/ordermgr/OrderViewScreens.xml#OrderFindOrder"/>

@@ -49,6 +49,7 @@ under the License.
     </request-map>
 
     <request-map uri="chain">
+        <security https="false" auth="false"/>
         <event type="java" path="org.apache.ofbiz.webapp.event.TestEvent" invoke="test"/>
         <response name="success" type="request" value="/view"/>
         <response name="error" type="view" value="error"/>
@@ -1897,19 +1898,19 @@ under the License.
         <response name="success" type="view" value="WebSiteContactList"/>
     </request-map>
     <request-map uri="createWebSiteContactList">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="createWebSiteContactList"/>
         <response name="success" type="view" value="WebSiteContactList"/>
         <response name="error" type="view" value="WebSiteContactList"/>
     </request-map>
     <request-map uri="updateWebSiteContactList">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="updateWebSiteContactList"/>
         <response name="success" type="view" value="WebSiteContactList"/>
         <response name="error" type="view" value="WebSiteContactList"/>
     </request-map>
     <request-map uri="deleteWebSiteContactList">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="deleteWebSiteContactList"/>
         <response name="success" type="view" value="WebSiteContactList"/>
         <response name="error" type="view" value="WebSiteContactList"/>
@@ -2107,7 +2108,7 @@ under the License.
     <view-map name="ViewBinaryDataResource" page="" type="simplecontent"/>
     <view-map name="ViewCompDocContent" type="screen" page="component://content/widget/compdoc/CompDocScreens.xml#ViewCompDocContent"/>
 
-    <view-map name="ViewSimpleContent" page="" type="simplecontent"/>
+    <view-map name="ViewSimpleContent" page="" type="simplecontent" auth="false"/>
 
     <!-- lookup content component -->
     <view-map name="LookupContent" type="screen" page="component://content/widget/content/ContentScreens.xml#LookupContent"/>

@@ -315,19 +315,19 @@ under the License.
         <response name="success" type="view" value="WebSiteContactList"/>
     </request-map>
     <request-map uri="createWebSiteContactList">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="createWebSiteContactList"/>
         <response name="success" type="view" value="WebSiteContactList"/>
         <response name="error" type="view" value="WebSiteContactList"/>
     </request-map>
     <request-map uri="updateWebSiteContactList">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="updateWebSiteContactList"/>
         <response name="success" type="view" value="WebSiteContactList"/>
         <response name="error" type="view" value="WebSiteContactList"/>
     </request-map>
     <request-map uri="deleteWebSiteContactList">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="deleteWebSiteContactList"/>
         <response name="success" type="view" value="WebSiteContactList"/>
         <response name="error" type="view" value="WebSiteContactList"/>
@@ -441,7 +441,7 @@ under the License.
     <view-map name="ListContactListParty" type="screen" page="component://marketing/widget/ContactListScreens.xml#ListContactListParties"/>
     <view-map name="EditContactListParty" type="screen" page="component://marketing/widget/ContactListScreens.xml#EditContactListParty"/>
     <view-map name="FindContactListParties" type="screen" page="component://marketing/widget/ContactListScreens.xml#FindContactListParties"/>
-    <view-map name="ContactListOptOut" type="screen" page="component://marketing/widget/ContactListScreens.xml#OptOutResponse"/>
+    <view-map name="ContactListOptOut" type="screen" page="component://marketing/widget/ContactListScreens.xml#OptOutResponse" auth="false"/>
     <view-map name="WebSiteContactList" type="screen" page="component://marketing/widget/ContactListScreens.xml#WebSiteContactList"/>
 
     <view-map name="ListContactListCommEvents" type="screen" page="component://marketing/widget/ContactListScreens.xml#ListContactListCommEvents"/>
