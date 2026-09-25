@@ -25,6 +25,39 @@ import org.apache.ofbiz.datafile.*
 
 uiLabelMap = UtilProperties.getResourceBundleMap("WebtoolsUiLabels", locale)
 messages = []
+userLoginId = userLogin?.userLoginId
+
+if (!security.hasPermission("DATAFILE_MAINT", session) || !security.hasPermission("ENTITY_MAINT", session)) {
+    Debug.logWarning("Denied access to data file tools for userLogin [" + userLoginId + "]: DATAFILE_MAINT and ENTITY_MAINT permissions required", "ViewDataFile.groovy")
+    context.messages = messages
+    return
+}
+
+// Only paths inside ofbiz.home are accepted; remote URLs are not (see OFBIZ-12306).
+String toOfbizHomePath(String location) {
+    String ofbizHome = new File(System.getProperty("ofbiz.home")).getCanonicalPath()
+    File file = new File(location)
+    if (!file.isAbsolute()) {
+        file = new File(ofbizHome, location)
+    }
+    String canonical = file.getCanonicalPath()
+    if (!canonical.equals(ofbizHome) && !canonical.startsWith(ofbizHome + File.separator)) {
+        Debug.logWarning("Rejected data file location outside ofbiz.home for userLogin [" + userLoginId + "]: " + location, "ViewDataFile.groovy")
+        throw new IllegalArgumentException("File locations must be inside the OFBiz home directory")
+    }
+    return canonical
+}
+
+URL toLocalFileUrl(String location) {
+    if (!location) {
+        return null
+    }
+    if (UtilURL.fromUrlString(location)) {
+        Debug.logWarning("Rejected URL data file location for userLogin [" + userLoginId + "]: " + location, "ViewDataFile.groovy")
+        throw new IllegalArgumentException("Remote URLs are not accepted, only files inside the OFBiz home directory")
+    }
+    return UtilURL.fromFilename(toOfbizHomePath(location))
+}
 
 dataFileSave = request.getParameter("DATAFILE_SAVE")
 
@@ -33,20 +66,24 @@ entityXmlFileSave = request.getParameter("ENTITYXML_FILE_SAVE")
 dataFileLoc = request.getParameter("DATAFILE_LOCATION")
 definitionLoc = request.getParameter("DEFINITION_LOCATION")
 definitionName = request.getParameter("DEFINITION_NAME")
-dataFileIsUrl = null != request.getParameter("DATAFILE_IS_URL")
-definitionIsUrl = null != request.getParameter("DEFINITION_IS_URL")
 
-try {
-    dataFileUrl = dataFileIsUrl?new URL(dataFileLoc):UtilURL.fromFilename(dataFileLoc)
+if (request.getParameter("DATAFILE_IS_URL") != null || request.getParameter("DEFINITION_IS_URL") != null) {
+    messages.add("Remote URLs are not accepted, only files inside the OFBiz home directory")
 }
-catch (java.net.MalformedURLException e) {
+
+dataFileUrl = null
+try {
+    dataFileUrl = toLocalFileUrl(dataFileLoc)
+}
+catch (Exception e) {
     messages.add(e.getMessage())
 }
 
+definitionUrl = null
 try {
-    definitionUrl = definitionIsUrl?new URL(definitionLoc):UtilURL.fromFilename(definitionLoc)
+    definitionUrl = toLocalFileUrl(definitionLoc)
 }
-catch (java.net.MalformedURLException e) {
+catch (Exception e) {
     messages.add(e.getMessage())
 }
 
@@ -82,6 +119,7 @@ if (dataFile) {
 
 if (dataFile && dataFileSave) {
     try {
+        dataFileSave = toOfbizHomePath(dataFileSave)
         dataFile.writeDataFile(dataFileSave)
         messages.add(uiLabelMap.WebtoolsDataFileSavedTo + dataFileSave)
     }
@@ -92,7 +130,7 @@ if (dataFile && dataFileSave) {
 
 if (dataFile && entityXmlFileSave) {
     try {
-        //dataFile.writeDataFile(entityXmlFileSave)
+        entityXmlFileSave = toOfbizHomePath(entityXmlFileSave)
         DataFile2EntityXml.writeToEntityXml(entityXmlFileSave, dataFile)
         messages.add(uiLabelMap.WebtoolsDataEntityFileSavedTo + entityXmlFileSave)
     }
