@@ -25,9 +25,10 @@ import org.apache.ofbiz.datafile.*
 
 uiLabelMap = UtilProperties.getResourceBundleMap("WebtoolsUiLabels", locale)
 messages = []
+userLoginId = userLogin?.userLoginId
 
 if (!security.hasPermission("DATAFILE_MAINT", session) || !security.hasPermission("ENTITY_MAINT", session)) {
-    Debug.logWarning("Denied access to data file tools for userLogin [" + (userLogin?.userLoginId) + "]: DATAFILE_MAINT and ENTITY_MAINT permissions required", "ViewDataFile.groovy")
+    Debug.logWarning("Denied access to data file tools for userLogin [" + userLoginId + "]: DATAFILE_MAINT and ENTITY_MAINT permissions required", "ViewDataFile.groovy")
     context.messages = messages
     return
 }
@@ -37,7 +38,8 @@ String toOfbizHomePath(String location) {
     String ofbizHome = new File(System.getProperty("ofbiz.home")).getCanonicalPath()
     String canonical = new File(location).getCanonicalPath()
     if (!canonical.equals(ofbizHome) && !canonical.startsWith(ofbizHome + File.separator)) {
-        throw new IllegalArgumentException("File locations must be inside the OFBiz home directory: " + location)
+        Debug.logWarning("Rejected data file location outside ofbiz.home for userLogin [" + userLoginId + "]: " + location, "ViewDataFile.groovy")
+        throw new IllegalArgumentException("File locations must be inside the OFBiz home directory")
     }
     return canonical
 }
@@ -47,7 +49,8 @@ URL toLocalFileUrl(String location) {
         return null
     }
     if (UtilURL.fromUrlString(location)) {
-        throw new IllegalArgumentException("Remote URLs are not accepted, only files inside the OFBiz home directory: " + location)
+        Debug.logWarning("Rejected URL data file location for userLogin [" + userLoginId + "]: " + location, "ViewDataFile.groovy")
+        throw new IllegalArgumentException("Remote URLs are not accepted, only files inside the OFBiz home directory")
     }
     return UtilURL.fromFilename(toOfbizHomePath(location))
 }
