@@ -26,6 +26,58 @@ import org.apache.ofbiz.datafile.*
 uiLabelMap = UtilProperties.getResourceBundleMap("WebtoolsUiLabels", locale)
 messages = []
 
+if (!security.hasPermission("DATAFILE_MAINT", session) || !security.hasPermission("ENTITY_MAINT", session)) {
+    Debug.logWarning("Denied access to data file tools for userLogin [" + (userLogin?.userLoginId) + "]: DATAFILE_MAINT and ENTITY_MAINT permissions required", "ViewDataFile.groovy")
+    context.messages = messages
+    return
+}
+
+boolean isInternalAddress(InetAddress addr) {
+    if (addr.isAnyLocalAddress() || addr.isLoopbackAddress() || addr.isLinkLocalAddress()
+            || addr.isSiteLocalAddress() || addr.isMulticastAddress()) {
+        return true
+    }
+    // IPv6 unique local addresses (fc00::/7) are not covered by isSiteLocalAddress
+    if (addr instanceof Inet6Address && (addr.getAddress()[0] & 0xfe) == 0xfc) {
+        return true
+    }
+    return false
+}
+
+URL toRemoteUrl(String location) {
+    URL url = new URL(location)
+    if (!(url.getProtocol() in ["http", "https"]) || !url.getHost()) {
+        throw new MalformedURLException("Only http and https URLs with a host are allowed: " + location)
+    }
+    if (url.getUserInfo()) {
+        throw new MalformedURLException("URLs with embedded credentials are not allowed: " + location)
+    }
+    InetAddress[] addresses
+    try {
+        addresses = InetAddress.getAllByName(url.getHost())
+    } catch (UnknownHostException e) {
+        throw new MalformedURLException("Unable to resolve host: " + url.getHost())
+    }
+    for (InetAddress addr : addresses) {
+        if (isInternalAddress(addr)) {
+            throw new MalformedURLException("URLs resolving to internal or reserved addresses are not allowed: " + url.getHost())
+        }
+    }
+    return url
+}
+
+URL toLocalFileUrl(String location) {
+    if (!location) {
+        return null
+    }
+    String ofbizHome = new File(System.getProperty("ofbiz.home")).getCanonicalPath()
+    String canonical = new File(location).getCanonicalPath()
+    if (!canonical.equals(ofbizHome) && !canonical.startsWith(ofbizHome + File.separator)) {
+        throw new MalformedURLException("File locations must be inside the OFBiz home directory: " + location)
+    }
+    return UtilURL.fromFilename(canonical)
+}
+
 dataFileSave = request.getParameter("DATAFILE_SAVE")
 
 entityXmlFileSave = request.getParameter("ENTITYXML_FILE_SAVE")
@@ -36,15 +88,17 @@ definitionName = request.getParameter("DEFINITION_NAME")
 dataFileIsUrl = null != request.getParameter("DATAFILE_IS_URL")
 definitionIsUrl = null != request.getParameter("DEFINITION_IS_URL")
 
+dataFileUrl = null
 try {
-    dataFileUrl = dataFileIsUrl?new URL(dataFileLoc):UtilURL.fromFilename(dataFileLoc)
+    dataFileUrl = dataFileIsUrl ? (dataFileLoc ? toRemoteUrl(dataFileLoc) : null) : toLocalFileUrl(dataFileLoc)
 }
 catch (java.net.MalformedURLException e) {
     messages.add(e.getMessage())
 }
 
+definitionUrl = null
 try {
-    definitionUrl = definitionIsUrl?new URL(definitionLoc):UtilURL.fromFilename(definitionLoc)
+    definitionUrl = definitionIsUrl ? (definitionLoc ? toRemoteUrl(definitionLoc) : null) : toLocalFileUrl(definitionLoc)
 }
 catch (java.net.MalformedURLException e) {
     messages.add(e.getMessage())
