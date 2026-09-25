@@ -2108,7 +2108,7 @@ under the License.
     <view-map name="ViewBinaryDataResource" page="" type="simplecontent"/>
     <view-map name="ViewCompDocContent" type="screen" page="component://content/widget/compdoc/CompDocScreens.xml#ViewCompDocContent"/>
 
-    <view-map name="ViewSimpleContent" page="" type="simplecontent"/>
+    <view-map name="ViewSimpleContent" page="" type="simplecontent" auth="false"/>
 
     <!-- lookup content component -->
     <view-map name="LookupContent" type="screen" page="component://content/widget/content/ContentScreens.xml#LookupContent"/>
