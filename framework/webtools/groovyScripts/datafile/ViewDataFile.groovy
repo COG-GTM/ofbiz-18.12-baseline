@@ -32,50 +32,24 @@ if (!security.hasPermission("DATAFILE_MAINT", session) || !security.hasPermissio
     return
 }
 
-boolean isInternalAddress(InetAddress addr) {
-    if (addr.isAnyLocalAddress() || addr.isLoopbackAddress() || addr.isLinkLocalAddress()
-            || addr.isSiteLocalAddress() || addr.isMulticastAddress()) {
-        return true
+// Only paths inside ofbiz.home are accepted; remote URLs are not (see OFBIZ-12306).
+String toOfbizHomePath(String location) {
+    String ofbizHome = new File(System.getProperty("ofbiz.home")).getCanonicalPath()
+    String canonical = new File(location).getCanonicalPath()
+    if (!canonical.equals(ofbizHome) && !canonical.startsWith(ofbizHome + File.separator)) {
+        throw new IllegalArgumentException("File locations must be inside the OFBiz home directory: " + location)
     }
-    // IPv6 unique local addresses (fc00::/7) are not covered by isSiteLocalAddress
-    if (addr instanceof Inet6Address && (addr.getAddress()[0] & 0xfe) == 0xfc) {
-        return true
-    }
-    return false
-}
-
-URL toRemoteUrl(String location) {
-    URL url = new URL(location)
-    if (!(url.getProtocol() in ["http", "https"]) || !url.getHost()) {
-        throw new MalformedURLException("Only http and https URLs with a host are allowed: " + location)
-    }
-    if (url.getUserInfo()) {
-        throw new MalformedURLException("URLs with embedded credentials are not allowed: " + location)
-    }
-    InetAddress[] addresses
-    try {
-        addresses = InetAddress.getAllByName(url.getHost())
-    } catch (UnknownHostException e) {
-        throw new MalformedURLException("Unable to resolve host: " + url.getHost())
-    }
-    for (InetAddress addr : addresses) {
-        if (isInternalAddress(addr)) {
-            throw new MalformedURLException("URLs resolving to internal or reserved addresses are not allowed: " + url.getHost())
-        }
-    }
-    return url
+    return canonical
 }
 
 URL toLocalFileUrl(String location) {
     if (!location) {
         return null
     }
-    String ofbizHome = new File(System.getProperty("ofbiz.home")).getCanonicalPath()
-    String canonical = new File(location).getCanonicalPath()
-    if (!canonical.equals(ofbizHome) && !canonical.startsWith(ofbizHome + File.separator)) {
-        throw new MalformedURLException("File locations must be inside the OFBiz home directory: " + location)
+    if (UtilURL.fromUrlString(location)) {
+        throw new IllegalArgumentException("Remote URLs are not accepted, only files inside the OFBiz home directory: " + location)
     }
-    return UtilURL.fromFilename(canonical)
+    return UtilURL.fromFilename(toOfbizHomePath(location))
 }
 
 dataFileSave = request.getParameter("DATAFILE_SAVE")
@@ -85,22 +59,24 @@ entityXmlFileSave = request.getParameter("ENTITYXML_FILE_SAVE")
 dataFileLoc = request.getParameter("DATAFILE_LOCATION")
 definitionLoc = request.getParameter("DEFINITION_LOCATION")
 definitionName = request.getParameter("DEFINITION_NAME")
-dataFileIsUrl = null != request.getParameter("DATAFILE_IS_URL")
-definitionIsUrl = null != request.getParameter("DEFINITION_IS_URL")
+
+if (request.getParameter("DATAFILE_IS_URL") != null || request.getParameter("DEFINITION_IS_URL") != null) {
+    messages.add("Remote URLs are not accepted, only files inside the OFBiz home directory")
+}
 
 dataFileUrl = null
 try {
-    dataFileUrl = dataFileIsUrl ? (dataFileLoc ? toRemoteUrl(dataFileLoc) : null) : toLocalFileUrl(dataFileLoc)
+    dataFileUrl = toLocalFileUrl(dataFileLoc)
 }
-catch (java.net.MalformedURLException e) {
+catch (Exception e) {
     messages.add(e.getMessage())
 }
 
 definitionUrl = null
 try {
-    definitionUrl = definitionIsUrl ? (definitionLoc ? toRemoteUrl(definitionLoc) : null) : toLocalFileUrl(definitionLoc)
+    definitionUrl = toLocalFileUrl(definitionLoc)
 }
-catch (java.net.MalformedURLException e) {
+catch (Exception e) {
     messages.add(e.getMessage())
 }
 
@@ -136,6 +112,7 @@ if (dataFile) {
 
 if (dataFile && dataFileSave) {
     try {
+        dataFileSave = toOfbizHomePath(dataFileSave)
         dataFile.writeDataFile(dataFileSave)
         messages.add(uiLabelMap.WebtoolsDataFileSavedTo + dataFileSave)
     }
@@ -146,7 +123,7 @@ if (dataFile && dataFileSave) {
 
 if (dataFile && entityXmlFileSave) {
     try {
-        //dataFile.writeDataFile(entityXmlFileSave)
+        entityXmlFileSave = toOfbizHomePath(entityXmlFileSave)
         DataFile2EntityXml.writeToEntityXml(entityXmlFileSave, dataFile)
         messages.add(uiLabelMap.WebtoolsDataEntityFileSavedTo + entityXmlFileSave)
     }
