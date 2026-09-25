@@ -26,6 +26,12 @@ import java.util.Iterator
 import org.apache.ofbiz.entity.*
 import org.apache.ofbiz.entity.model.ModelGroupReader
 
+if (!security.hasPermission("ENTITY_MAINT", session)) {
+    logWarning("EntitySQLProcessor denied: user [${userLogin?.userLoginId}] lacks ENTITY_MAINT permission")
+    request.setAttribute("_ERROR_MESSAGE_", "Not executed for security reason")
+    return
+}
+
 sqlCommand = context.request.getParameter("sqlCommand")
 
 resultMessage = ""
