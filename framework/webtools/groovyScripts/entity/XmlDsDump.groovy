@@ -45,9 +45,16 @@ entitySyncId = parameters.entitySyncId
 passedEntityNames = null
 if (parameters.entityName) passedEntityNames = parameters.entityName instanceof Collection ? parameters.entityName as TreeSet : [parameters.entityName] as TreeSet
 
-outdir = EntityExportPath.resolveDir(outpath)
-outfile = filename ? EntityExportPath.resolveFile(outdir, filename) : null
-if (!outdir || (filename && !outfile)) {
+tobrowser = parameters.tobrowser != null
+context.tobrowser = tobrowser
+
+outdir = null
+outfile = null
+if (!tobrowser) {
+    outdir = EntityExportPath.resolveDir(outpath)
+    outfile = filename ? EntityExportPath.resolveFile(outdir, filename) : null
+}
+if (!tobrowser && (!outdir || (filename && !outfile))) {
     Debug.logWarning("Entity XML export rejected for user [${userLogin?.userLoginId}]: outpath [${outpath}] filename [${filename}] not allowed under [${exportBaseDir}]", "XmlDsDump")
     request.setAttribute("_ERROR_MESSAGE_", UtilProperties.getMessage("WebtoolsUiLabels", "WebtoolsExportPathNotAllowed", [exportBaseDir: exportBaseDir.getPath()], locale))
     return
@@ -172,8 +179,6 @@ if (entitySyncId) {
     passedEntityNames = org.apache.ofbiz.entityext.synchronization.EntitySyncContext.getEntitySyncModelNamesToUse(dispatcher, entitySyncId)
 }
 checkAll = "true".equals(parameters.checkAll)
-tobrowser = parameters.tobrowser != null
-context.tobrowser = tobrowser
 
 entityFromCond = null
 entityThruCond = null
