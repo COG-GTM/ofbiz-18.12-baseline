@@ -51,9 +51,11 @@ public class ConfigXMLReaderTests {
             + "<security https=\"true\" auth=\"true\"/>"
             + "<response name=\"success\" type=\"view\" value=\"protectedView\"/>"
             + "</request-map>"
-            + "<view-map name=\"publicView\" type=\"screen\" page=\"component://test/widget/Screens.xml#public\" auth=\"false\"/>"
+            + "<view-map name=\"publicView\" type=\"screen\" page=\"component://test/widget/Screens.xml#public\""
+            + " auth=\"false\"/>"
             + "<view-map name=\"implicitView\" type=\"screen\" page=\"component://test/widget/Screens.xml#implicit\"/>"
-            + "<view-map name=\"protectedView\" type=\"screen\" page=\"component://test/widget/Screens.xml#protected\" auth=\"true\"/>"
+            + "<view-map name=\"protectedView\" type=\"screen\" page=\"component://test/widget/Screens.xml#protected\""
+            + " auth=\"true\"/>"
             + "</site-conf>";
 
     private Map<String, RequestMap> requestMaps;
