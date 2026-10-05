@@ -1922,7 +1922,7 @@ under the License.
     
     <!-- Get Values options associated with a Price Rule Condition Input -->
     <request-map uri="getAssociatedPriceRulesConds">
-        <security https="true" auth="false"/>
+        <security https="true" auth="true"/>
         <event type="service" invoke="getAssociatedPriceRulesConds"/>
         <response name="success" type="request" value="json"/>
         <response name="error" type="request" value="json"/>

@@ -222,7 +222,12 @@ under the License.
         <store-value value-field="lookedUpValue"/>
     </simple-method>
 
-    <simple-method method-name="getAssociatedPriceRulesConds" short-description="Set the Value options for selected Price Rule Condition Input" login-required="false">
+    <simple-method method-name="getAssociatedPriceRulesConds" short-description="Set the Value options for selected Price Rule Condition Input">
+        <check-permission permission="CATALOG" action="_VIEW">
+            <fail-property resource="ProductUiLabels" property="ProductCatalogViewPermissionError"/>
+        </check-permission>
+        <check-errors/>
+
         <if>
             <condition>
                 <or>
