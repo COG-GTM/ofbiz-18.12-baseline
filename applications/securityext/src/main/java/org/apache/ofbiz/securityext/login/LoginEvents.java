@@ -260,6 +260,13 @@ public class LoginEvents {
 
             //Generate a JWT with default retention time
             String jwtToken = SecurityUtil.generateJwtToAuthenticateUserLogin(delegator, userLoginId);
+            if (jwtToken == null) {
+                Debug.logError("Unable to generate the password recovery token, check the security.token.key configuration", module);
+                String errMsg = UtilProperties.getMessage(resource, "loginevents.problems_with_configuration_contact_customer_service",
+                        UtilHttp.getLocale(request));
+                request.setAttribute("_ERROR_MESSAGE_", errMsg);
+                return "error";
+            }
 
             // get the ProductStore email settings
             GenericValue productStoreEmail = null;

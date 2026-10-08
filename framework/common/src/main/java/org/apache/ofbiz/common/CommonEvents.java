@@ -325,6 +325,11 @@ public class CommonEvents {
             types.put("userLoginId", securedUserLoginId);
             int ttlSeconds =  (int) Long.parseLong(EntityUtilProperties.getPropertyValue("security", "security.jwt.token.expireTime", "10", delegator));
             String token = JWTManager.createJwt(delegator, types, ttlSeconds);
+            if (token == null) {
+                Debug.logError("Unable to generate a JWT, check the security.token.key configuration", module);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                return "error";
+            }
             writeJSONtoResponse(JSON.from(token), request, response);
         } else {
             Debug.logWarning("No securedUserLoginId cookie was found for this application", module);

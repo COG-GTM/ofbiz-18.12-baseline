@@ -60,6 +60,13 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 public class JWTManager {
     private static final String module = JWTManager.class.getName();
 
+    /** Name of the security.properties entry holding the HMAC secret used to sign and verify JWTs. */
+    public static final String JWT_KEY_PROPERTY = "security.token.key";
+    /** Placeholder value historically shipped as the default of {@link #JWT_KEY_PROPERTY}; publicly known, so never accepted as a key. */
+    public static final String JWT_KEY_PLACEHOLDER = "security.token.key";
+    /** Minimum accepted length (in characters) of the configured secret key. */
+    public static final int JWT_KEY_MIN_LENGTH = 32;
+
     /**
      * OFBiz controller preprocessor event.
      *
@@ -144,11 +151,36 @@ public class JWTManager {
      */
     
     public static String getJWTKey(Delegator delegator, String salt) {
-        String key = EntityUtilProperties.getPropertyValue("security", "security.token.key", delegator);
+        String key = EntityUtilProperties.getPropertyValue("security", JWT_KEY_PROPERTY, delegator);
+        if (!isUsableKey(key)) {
+            Debug.logError("The JWT secret key (" + JWT_KEY_PROPERTY + " in security.properties or the SystemProperty entity) is not configured, "
+                    + "still set to the shipped placeholder value, or shorter than " + JWT_KEY_MIN_LENGTH + " characters. "
+                    + "JWT based features (internal SSO, password recovery links, bearer token API access) are disabled until a unique, "
+                    + "high-entropy secret is configured.", module);
+            return null;
+        }
         if (salt != null) {
             return StringUtil.toHexString(salt.getBytes()) + key;
         }
         return key;
+    }
+
+    /**
+     * Checks that a JWT secret key is safe to sign or verify tokens with: it must be set, must not be the publicly known
+     * placeholder shipped in security.properties and must be long enough to resist brute force.
+     * Public for API access from third party code.
+     *
+     * @param key the secret key to check
+     * @return true if the key may be used to sign or verify tokens
+     */
+    public static boolean isUsableKey(String key) {
+        if (UtilValidate.isEmpty(key)) {
+            return false;
+        }
+        if (JWT_KEY_PLACEHOLDER.equals(key.trim())) {
+            return false;
+        }
+        return key.length() >= JWT_KEY_MIN_LENGTH;
     }
 
      /**
@@ -238,8 +270,13 @@ public class JWTManager {
      */
     public static Map<String, Object> validateToken(String jwtToken, String key) {
         Map<String, Object> result = new HashMap<String, Object>();
-        if (UtilValidate.isEmpty(jwtToken) || UtilValidate.isEmpty(key)) {
-            String msg = "JWT token or key can not be empty.";
+        if (UtilValidate.isEmpty(jwtToken)) {
+            String msg = "JWT token can not be empty.";
+            Debug.logError(msg, module);
+            return ServiceUtil.returnError(msg);
+        }
+        if (!isUsableKey(key)) {
+            String msg = "JWT secret key is not configured or not safe to use, refusing to validate the token.";
             Debug.logError(msg, module);
             return ServiceUtil.returnError(msg);
         }
@@ -302,7 +339,7 @@ public class JWTManager {
      * @param claims the map containing the JWT claims
      * @param keySalt salt to use as prefix on the encrypt key
      * @param expireTime the expiration time in seconds
-     * @return a JWT token
+     * @return a JWT token, or null if no usable secret key is configured
      */
     public static String createJwt(Delegator delegator, Map<String, String> claims, String keySalt, int expireTime) {
         if (expireTime <= 0) {
@@ -310,6 +347,10 @@ public class JWTManager {
         }
 
         String key = JWTManager.getJWTKey(delegator, keySalt);
+        if (key == null) {
+            Debug.logError("JWT secret key is not configured or not safe to use, refusing to create a token.", module);
+            return null;
+        }
 
         Calendar cal = Calendar.getInstance();
         Timestamp now = UtilDateTime.nowTimestamp();
