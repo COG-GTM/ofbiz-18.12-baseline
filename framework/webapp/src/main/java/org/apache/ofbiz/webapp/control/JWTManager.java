@@ -66,6 +66,8 @@ public class JWTManager {
     public static final String JWT_KEY_PLACEHOLDER = "security.token.key";
     /** Minimum accepted length (in characters) of the configured secret key. */
     public static final int JWT_KEY_MIN_LENGTH = 32;
+    /** Minimum number of distinct characters the configured secret key must contain. */
+    public static final int JWT_KEY_MIN_DISTINCT_CHARS = 10;
 
     /**
      * OFBiz controller preprocessor event.
@@ -167,7 +169,9 @@ public class JWTManager {
 
     /**
      * Checks that a JWT secret key is safe to sign or verify tokens with: it must be set, must not be the publicly known
-     * placeholder shipped in security.properties and must be long enough to resist brute force.
+     * placeholder shipped in security.properties, must be long enough to resist brute force and must not be an obviously
+     * low-entropy value (a single repeated character or a short pattern repeated to reach the minimum length).
+     * These checks cannot prove the key is random, so the key must still be generated with a CSPRNG as documented.
      * Public for API access from third party code.
      *
      * @param key the secret key to check
@@ -180,7 +184,31 @@ public class JWTManager {
         if (JWT_KEY_PLACEHOLDER.equals(key.trim())) {
             return false;
         }
-        return key.length() >= JWT_KEY_MIN_LENGTH;
+        if (key.length() < JWT_KEY_MIN_LENGTH) {
+            return false;
+        }
+        if (key.chars().distinct().count() < JWT_KEY_MIN_DISTINCT_CHARS) {
+            return false;
+        }
+        return !isRepeatedPattern(key);
+    }
+
+    private static boolean isRepeatedPattern(String key) {
+        int length = key.length();
+        for (int period = 1; period <= length / 2; period++) {
+            if (length % period != 0) {
+                continue;
+            }
+            String pattern = key.substring(0, period);
+            boolean repeated = true;
+            for (int offset = period; offset < length && repeated; offset += period) {
+                repeated = key.startsWith(pattern, offset);
+            }
+            if (repeated) {
+                return true;
+            }
+        }
+        return false;
     }
 
      /**

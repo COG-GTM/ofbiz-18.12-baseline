@@ -32,7 +32,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 
 public class JWTManagerTests {
-    private static final String STRONG_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    private static final String STRONG_KEY = "3f9a1c7e2b8d4f60a5c9e1b7d2f4a6c8e0b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1";
 
     private static String signedToken(String key, String userLoginId) {
         return JWT.create()
@@ -63,7 +63,18 @@ public class JWTManagerTests {
     }
 
     @Test
+    public void isUsableKeyRejectsLowEntropyKeys() {
+        assertFalse(JWTManager.isUsableKey("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+        assertFalse(JWTManager.isUsableKey("abababababababababababababababababababab"));
+        assertFalse(JWTManager.isUsableKey("0123456789012345678901234567890123456789"));
+        assertFalse(JWTManager.isUsableKey("security.token.keysecurity.token.key"));
+        assertFalse(JWTManager.isUsableKey("changeme-changeme-changeme-changeme-"));
+    }
+
+    @Test
     public void isUsableKeyAcceptsLongRandomKeys() {
+        assertTrue(JWTManager.isUsableKey("qY7vP2mN9xK4wL1zR8tB3cF6hJ0dG5sA"));
+        assertTrue(JWTManager.isUsableKey("3f9a1c7e2b8d4f60a5c9e1b7d2f4a6c8e0b3d5f7a9c1e3b5d7f9a1c3e5b7d9f1"));
         assertTrue(JWTManager.isUsableKey(STRONG_KEY.substring(0, JWTManager.JWT_KEY_MIN_LENGTH)));
         assertTrue(JWTManager.isUsableKey(STRONG_KEY));
     }
