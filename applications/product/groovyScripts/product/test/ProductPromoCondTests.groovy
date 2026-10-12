@@ -374,4 +374,43 @@ class ProductPromoCondTest extends GroovyScriptTestCase {
         assert ServiceUtil.isSuccess(serviceResult)
         assert serviceResult.compareBase < 0
     }
+
+    /**
+     * This test checks that createProductPromoCond and updateProductPromoCond
+     *  1. generate sequential productPromoCondSeqId values padded to two digits
+     *  2. copy carrierShipmentMethod into otherValue on create and update
+     */
+    void testCreateAndUpdateProductPromoCond() {
+        GenericValue systemUserLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne()
+        delegator.createOrStore(delegator.makeValue("ProductPromo", [productPromoId: 'TEST_COND_SVC']))
+        delegator.createOrStore(delegator.makeValue("ProductPromoRule", [productPromoId: 'TEST_COND_SVC', productPromoRuleId: '01']))
+
+        Map<String, Object> serviceResult = dispatcher.runSync("createProductPromoCond", [productPromoId: 'TEST_COND_SVC',
+                productPromoRuleId: '01', inputParamEnumId: 'PPIP_ORDER_TOTAL', operatorEnumId: 'PPC_GTE',
+                condValue: '10', userLogin: systemUserLogin])
+        assert ServiceUtil.isSuccess(serviceResult)
+        assert serviceResult.productPromoCondSeqId == '01'
+
+        serviceResult = dispatcher.runSync("createProductPromoCond", [productPromoId: 'TEST_COND_SVC',
+                productPromoRuleId: '01', inputParamEnumId: 'PPIP_ORDER_SHIPTOTAL', operatorEnumId: 'PPC_GTE',
+                condValue: '5', carrierShipmentMethod: 'UPS@GROUND', userLogin: systemUserLogin])
+        assert ServiceUtil.isSuccess(serviceResult)
+        assert serviceResult.productPromoCondSeqId == '02'
+
+        GenericValue productPromoCond = EntityQuery.use(delegator).from("ProductPromoCond")
+                .where(productPromoId: 'TEST_COND_SVC', productPromoRuleId: '01', productPromoCondSeqId: '02').queryOne()
+        assert productPromoCond.condValue == '5'
+        assert productPromoCond.otherValue == 'UPS@GROUND'
+
+        serviceResult = dispatcher.runSync("updateProductPromoCond", [productPromoId: 'TEST_COND_SVC',
+                productPromoRuleId: '01', productPromoCondSeqId: '01', inputParamEnumId: 'PPIP_ORDER_TOTAL',
+                operatorEnumId: 'PPC_GT', condValue: '20', carrierShipmentMethod: 'FEDEX@AIR', userLogin: systemUserLogin])
+        assert ServiceUtil.isSuccess(serviceResult)
+
+        productPromoCond = EntityQuery.use(delegator).from("ProductPromoCond")
+                .where(productPromoId: 'TEST_COND_SVC', productPromoRuleId: '01', productPromoCondSeqId: '01').queryOne()
+        assert productPromoCond.operatorEnumId == 'PPC_GT'
+        assert productPromoCond.condValue == '20'
+        assert productPromoCond.otherValue == 'FEDEX@AIR'
+    }
 }
