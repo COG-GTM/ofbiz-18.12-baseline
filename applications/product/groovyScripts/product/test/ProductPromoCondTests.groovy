@@ -374,4 +374,50 @@ class ProductPromoCondTest extends GroovyScriptTestCase {
         assert ServiceUtil.isSuccess(serviceResult)
         assert serviceResult.compareBase < 0
     }
+
+    /**
+     * This test check if the services createProductPromoCond and updateProductPromoCond work correctly
+     *  1. create a condition and check the generated sequence id and the carrierShipmentMethod mapping
+     *  2. update the condition and check the stored values
+     */
+    void testCreateAndUpdateProductPromoCond() {
+        GenericValue userLogin = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", "system").cache().queryOne()
+        Map<String, Object> serviceContext = [productPromoId: "9022",
+                productPromoRuleId: "01",
+                inputParamEnumId: "PPIP_ORDER_TOTAL",
+                operatorEnumId: "PPC_GTE",
+                condValue: "10",
+                carrierShipmentMethod: "UPS@NEXT_DAY",
+                userLogin: userLogin]
+        Map<String, Object> serviceResult = dispatcher.runSync("createProductPromoCond", serviceContext)
+        assert ServiceUtil.isSuccess(serviceResult)
+        String productPromoCondSeqId = serviceResult.productPromoCondSeqId
+        assert productPromoCondSeqId ==~ /\d{2,}/
+
+        GenericValue productPromoCond = EntityQuery.use(delegator).from("ProductPromoCond")
+                .where("productPromoId", "9022", "productPromoRuleId", "01", "productPromoCondSeqId", productPromoCondSeqId).queryOne()
+        assert productPromoCond
+        assert productPromoCond.inputParamEnumId == "PPIP_ORDER_TOTAL"
+        assert productPromoCond.operatorEnumId == "PPC_GTE"
+        assert productPromoCond.condValue == "10"
+        assert productPromoCond.otherValue == "UPS@NEXT_DAY"
+
+        serviceContext = [productPromoId: "9022",
+                productPromoRuleId: "01",
+                productPromoCondSeqId: productPromoCondSeqId,
+                inputParamEnumId: "PPIP_ORDER_TOTAL",
+                operatorEnumId: "PPC_GT",
+                condValue: "20",
+                carrierShipmentMethod: "FEDEX@GROUND",
+                userLogin: userLogin]
+        serviceResult = dispatcher.runSync("updateProductPromoCond", serviceContext)
+        assert ServiceUtil.isSuccess(serviceResult)
+
+        productPromoCond.refresh()
+        assert productPromoCond.operatorEnumId == "PPC_GT"
+        assert productPromoCond.condValue == "20"
+        assert productPromoCond.otherValue == "FEDEX@GROUND"
+
+        productPromoCond.remove()
+    }
 }
