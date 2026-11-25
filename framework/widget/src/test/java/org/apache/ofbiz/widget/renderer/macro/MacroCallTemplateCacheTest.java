@@ -79,11 +79,12 @@ public class MacroCallTemplateCacheTest {
     @Test
     public void totalCachedCallLengthIsBounded() throws Exception {
         String chunk = new String(new char[MacroCallTemplateCache.MAX_CACHED_CALL_CHARS - 10]).replace('\0', 'x');
-        for (int i = 0; i < 300; i++) {
+        int calls = (int) (MacroCallTemplateCache.MAX_TOTAL_CHARS / chunk.length()) + 20;
+        for (int i = 0; i < calls; i++) {
             MacroCallTemplateCache.getTemplate(chunk + i);
         }
         assertTrue(MacroCallTemplateCache.weightedSize() <= MacroCallTemplateCache.MAX_TOTAL_CHARS);
-        assertTrue(MacroCallTemplateCache.contains(chunk + 299));
+        assertTrue(MacroCallTemplateCache.contains(chunk + (calls - 1)));
         assertFalse(MacroCallTemplateCache.contains(chunk + 0));
     }
 

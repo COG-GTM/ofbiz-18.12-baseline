@@ -38,8 +38,11 @@ import freemarker.template.Template;
  */
 final class MacroCallTemplateCache {
 
+    private static final long DEFAULT_MAX_TOTAL_CHARS = 5_000_000L;
+    private static final long CONFIGURED_MAX_TOTAL_CHARS =
+            UtilProperties.getPropertyAsLong("widget", "widget.macro.call.cache.maxChars", DEFAULT_MAX_TOTAL_CHARS);
     static final long MAX_TOTAL_CHARS =
-            UtilProperties.getPropertyAsLong("widget", "widget.macro.call.cache.maxChars", 5_000_000L);
+            CONFIGURED_MAX_TOTAL_CHARS > 0 ? CONFIGURED_MAX_TOTAL_CHARS : DEFAULT_MAX_TOTAL_CHARS;
     static final int MAX_CACHED_CALL_CHARS = 20_000;
 
     private static final ConcurrentLinkedHashMap<String, Template> TEMPLATES =
