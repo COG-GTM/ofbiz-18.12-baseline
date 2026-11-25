@@ -20,45 +20,51 @@ package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ConcurrentMap;
 
-import org.apache.ofbiz.base.util.StringUtil;
-import org.apache.ofbiz.base.util.cache.UtilCache;
 import org.apache.ofbiz.base.util.template.FreeMarkerWorker;
+
+import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
+import com.googlecode.concurrentlinkedhashmap.EntryWeigher;
 
 import freemarker.template.Template;
 
 /**
  * Parsed FreeMarker templates for the macro call strings built by the macro renderers.
  * A template only depends on its source text, so identical calls reuse one parse.
- * Entries are keyed by a SHA-256 digest of the call so rendered values (passwords, login keys)
- * are not exposed through the cache maintenance screens.
+ * Calls can carry rendered values (passwords, login keys), so this is a private LRU map,
+ * not a UtilCache listed in Cache Maintenance; it is bounded by the total length of the calls.
  */
 final class MacroCallTemplateCache {
 
-    private static final UtilCache<String, Template> TEMPLATES =
-            UtilCache.createUtilCache("widget.macro.call.template", 10000, 0, true);
+    private static final long MAX_TOTAL_CHARS = 2_000_000L;
+
+    private static final ConcurrentMap<String, Template> TEMPLATES =
+            new ConcurrentLinkedHashMap.Builder<String, Template>()
+            .maximumWeightedCapacity(MAX_TOTAL_CHARS)
+            .weigher(new EntryWeigher<String, Template>() {
+                @Override
+                public int weightOf(String macro, Template template) {
+                    return Math.max(1, macro.length());
+                }
+            })
+            .build();
 
     private MacroCallTemplateCache() { }
 
     static Template getTemplate(String macro) throws IOException {
-        String key = digest(macro);
-        Template template = TEMPLATES.get(key);
+        Template template = TEMPLATES.get(macro);
         if (template == null) {
             template = new Template("macroCall", new StringReader(macro), FreeMarkerWorker.getDefaultOfbizConfig());
-            template = TEMPLATES.putIfAbsentAndGet(key, template);
+            Template existing = TEMPLATES.putIfAbsent(macro, template);
+            if (existing != null) {
+                template = existing;
+            }
         }
         return template;
     }
 
-    private static String digest(String macro) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            return StringUtil.toHexString(md.digest(macro.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
+    static int size() {
+        return TEMPLATES.size();
     }
 }

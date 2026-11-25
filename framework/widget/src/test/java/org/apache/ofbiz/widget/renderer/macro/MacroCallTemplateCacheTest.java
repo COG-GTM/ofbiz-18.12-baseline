@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -66,11 +67,22 @@ public class MacroCallTemplateCacheTest {
     }
 
     @Test
-    public void cacheKeysDoNotContainTheMacroCall() throws Exception {
+    public void macroCallsAreNotListedInCacheMaintenance() throws Exception {
         MacroCallTemplateCache.getTemplate("<#macro p v>${v}</#macro><@p v=\"s3cret-value\" />");
-        for (Object key : UtilCache.findCache("widget.macro.call.template").getCacheLineKeys()) {
-            assertFalse(key.toString().contains("s3cret-value"));
+        for (String name : UtilCache.getUtilCacheTableKeySet()) {
+            for (Object key : UtilCache.findCache(name).getCacheLineKeys()) {
+                assertFalse(String.valueOf(key).contains("s3cret-value"));
+            }
         }
+    }
+
+    @Test
+    public void totalCachedCallLengthIsBounded() throws Exception {
+        String big = new String(new char[100_000]).replace('\0', 'x');
+        for (int i = 0; i < 40; i++) {
+            MacroCallTemplateCache.getTemplate(big + i);
+        }
+        assertTrue(MacroCallTemplateCache.size() < 40);
     }
 
     private static String renderWithLibrary(String library, String call) throws Exception {
