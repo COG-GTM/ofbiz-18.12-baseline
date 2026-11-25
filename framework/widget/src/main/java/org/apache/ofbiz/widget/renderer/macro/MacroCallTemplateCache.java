@@ -20,7 +20,11 @@ package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
+import org.apache.ofbiz.base.util.StringUtil;
 import org.apache.ofbiz.base.util.cache.UtilCache;
 import org.apache.ofbiz.base.util.template.FreeMarkerWorker;
 
@@ -29,6 +33,8 @@ import freemarker.template.Template;
 /**
  * Parsed FreeMarker templates for the macro call strings built by the macro renderers.
  * A template only depends on its source text, so identical calls reuse one parse.
+ * Entries are keyed by a SHA-256 digest of the call so rendered values (passwords, login keys)
+ * are not exposed through the cache maintenance screens.
  */
 final class MacroCallTemplateCache {
 
@@ -38,11 +44,21 @@ final class MacroCallTemplateCache {
     private MacroCallTemplateCache() { }
 
     static Template getTemplate(String macro) throws IOException {
-        Template template = TEMPLATES.get(macro);
+        String key = digest(macro);
+        Template template = TEMPLATES.get(key);
         if (template == null) {
             template = new Template("macroCall", new StringReader(macro), FreeMarkerWorker.getDefaultOfbizConfig());
-            template = TEMPLATES.putIfAbsentAndGet(macro, template);
+            template = TEMPLATES.putIfAbsentAndGet(key, template);
         }
         return template;
+    }
+
+    private static String digest(String macro) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            return StringUtil.toHexString(md.digest(macro.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

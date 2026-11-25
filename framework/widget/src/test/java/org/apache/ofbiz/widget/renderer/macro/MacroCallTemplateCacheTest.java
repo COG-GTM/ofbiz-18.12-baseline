@@ -19,15 +19,20 @@
 package org.apache.ofbiz.widget.renderer.macro;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
 
+import org.apache.ofbiz.base.util.cache.UtilCache;
+import org.apache.ofbiz.base.util.template.FreeMarkerWorker;
 import org.junit.Before;
 import org.junit.Test;
 
+import freemarker.core.Environment;
 import freemarker.template.Template;
 
 public class MacroCallTemplateCacheTest {
@@ -51,6 +56,30 @@ public class MacroCallTemplateCacheTest {
         assertEquals("[x]", render(x));
         assertEquals("[y]", render(y));
         assertEquals("[x]", render(MacroCallTemplateCache.getTemplate("<#macro m a>[${a}]</#macro><@m a=\"x\" />")));
+    }
+
+    @Test
+    public void cachedCallUsesTheMacroLibraryOfEachEnvironment() throws Exception {
+        String call = "<@renderField value=\"v\" />";
+        assertEquals("one:v", renderWithLibrary("<#macro renderField value>one:${value}</#macro>", call));
+        assertEquals("two:v", renderWithLibrary("<#macro renderField value>two:${value}</#macro>", call));
+    }
+
+    @Test
+    public void cacheKeysDoNotContainTheMacroCall() throws Exception {
+        MacroCallTemplateCache.getTemplate("<#macro p v>${v}</#macro><@p v=\"s3cret-value\" />");
+        for (Object key : UtilCache.findCache("widget.macro.call.template").getCacheLineKeys()) {
+            assertFalse(key.toString().contains("s3cret-value"));
+        }
+    }
+
+    private static String renderWithLibrary(String library, String call) throws Exception {
+        StringWriter out = new StringWriter();
+        Template libraryTemplate = new Template("library", new StringReader(library),
+                FreeMarkerWorker.getDefaultOfbizConfig());
+        Environment environment = FreeMarkerWorker.renderTemplate(libraryTemplate, new HashMap<String, Object>(), out);
+        environment.include(MacroCallTemplateCache.getTemplate(call));
+        return out.toString();
     }
 
     private static String render(Template template) throws Exception {
