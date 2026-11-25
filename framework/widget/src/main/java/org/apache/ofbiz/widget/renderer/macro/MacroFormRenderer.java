@@ -19,12 +19,9 @@
 package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.rmi.server.UID;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.sql.Timestamp;
@@ -152,10 +149,7 @@ public final class MacroFormRenderer implements FormStringRenderer {
             Environment environment = getEnvironment(writer);
             environment.setVariable("visualTheme", FreeMarkerWorker.autoWrap(visualTheme, environment));
             environment.setVariable("modelTheme", FreeMarkerWorker.autoWrap(visualTheme.getModelTheme(), environment));
-            Reader templateReader = new StringReader(macro);
-            Template template = new Template(new UID().toString(), templateReader, FreeMarkerWorker.getDefaultOfbizConfig());
-            templateReader.close();
-            environment.include(template);
+            environment.include(MacroCallTemplateCache.getTemplate(macro));
         } catch (TemplateException | IOException e) {
             Debug.logError(e, "Error rendering screen thru ftl, macro: " + macro, module);
         }

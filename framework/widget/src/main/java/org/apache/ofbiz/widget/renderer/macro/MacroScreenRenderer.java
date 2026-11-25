@@ -19,8 +19,6 @@
 package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -102,11 +100,7 @@ public class MacroScreenRenderer implements ScreenStringRenderer {
     private void executeMacro(Appendable writer, String macro) throws IOException {
         try {
             Environment environment = getEnvironment(writer);
-            Reader templateReader = new StringReader(macro);
-            // FIXME: I am using a Date as an hack to provide a unique name for the template...
-            Template template = new Template((new java.util.Date()).toString(), templateReader, FreeMarkerWorker.getDefaultOfbizConfig());
-            templateReader.close();
-            environment.include(template);
+            environment.include(MacroCallTemplateCache.getTemplate(macro));
         } catch (TemplateException |IOException e) {
             Debug.logError(e, "Error rendering screen macro [" + macro + "] thru ftl", module);
         }

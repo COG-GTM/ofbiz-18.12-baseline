@@ -19,8 +19,6 @@
 package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -58,7 +56,6 @@ import freemarker.template.TemplateException;
 public class MacroMenuRenderer implements MenuStringRenderer {
 
     public static final String module = MacroMenuRenderer.class.getName();
-    private int macroCount = 999;
     private final Map<Appendable, Environment> environments = new HashMap<>();
     private final Template macroLibrary;
     private final HttpServletRequest request;
@@ -104,12 +101,7 @@ public class MacroMenuRenderer implements MenuStringRenderer {
     private void executeMacro(Appendable writer, String macro) throws IOException, TemplateException {
         Environment environment = getEnvironment(writer);
         environment.setVariable("visualTheme", FreeMarkerWorker.autoWrap(visualTheme, environment));
-        Reader templateReader = new StringReader(macro);
-        macroCount++;
-        String templateName = toString().concat("_") + macroCount;
-        Template template = new Template(templateName, templateReader, FreeMarkerWorker.getDefaultOfbizConfig());
-        templateReader.close();
-        environment.include(template);
+        environment.include(MacroCallTemplateCache.getTemplate(macro));
     }
 
     private void executeMacro(Appendable writer, String macroName, Map<String, Object> macroParameters) throws IOException, TemplateException {

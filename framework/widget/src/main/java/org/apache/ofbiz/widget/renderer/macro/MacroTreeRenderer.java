@@ -19,8 +19,6 @@
 package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
@@ -67,12 +65,7 @@ public class MacroTreeRenderer implements TreeStringRenderer {
 
     private void executeMacro(String macro) {
         try {
-            Reader templateReader = new StringReader(macro);
-            // FIXME: I am using a Date as an hack to provide a unique name for the template...
-            Template template = new Template((new java.util.Date()).toString(), templateReader,
-                    FreeMarkerWorker.getDefaultOfbizConfig());
-            templateReader.close();
-            this.environment.include(template);
+            this.environment.include(MacroCallTemplateCache.getTemplate(macro));
         } catch (TemplateException | IOException e) {
             Debug.logError(e, "Error rendering tree thru ftl", module);
         }
