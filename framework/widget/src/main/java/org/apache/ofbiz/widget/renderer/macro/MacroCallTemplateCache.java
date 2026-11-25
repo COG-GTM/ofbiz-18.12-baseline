@@ -20,8 +20,8 @@ package org.apache.ofbiz.widget.renderer.macro;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.concurrent.ConcurrentMap;
 
+import org.apache.ofbiz.base.util.UtilProperties;
 import org.apache.ofbiz.base.util.template.FreeMarkerWorker;
 
 import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
@@ -32,14 +32,17 @@ import freemarker.template.Template;
 /**
  * Parsed FreeMarker templates for the macro call strings built by the macro renderers.
  * A template only depends on its source text, so identical calls reuse one parse.
- * Calls can carry rendered values (passwords, login keys), so this is a private LRU map,
- * not a UtilCache listed in Cache Maintenance; it is bounded by the total length of the calls.
+ * Calls can carry rendered values (login keys), so this is a private LRU map, not a UtilCache
+ * listed in Cache Maintenance; it is bounded by the total length of the calls. Password fields
+ * and very long calls are parsed without being cached.
  */
 final class MacroCallTemplateCache {
 
-    private static final long MAX_TOTAL_CHARS = 2_000_000L;
+    static final long MAX_TOTAL_CHARS =
+            UtilProperties.getPropertyAsLong("widget", "widget.macro.call.cache.maxChars", 5_000_000L);
+    static final int MAX_CACHED_CALL_CHARS = 20_000;
 
-    private static final ConcurrentMap<String, Template> TEMPLATES =
+    private static final ConcurrentLinkedHashMap<String, Template> TEMPLATES =
             new ConcurrentLinkedHashMap.Builder<String, Template>()
             .maximumWeightedCapacity(MAX_TOTAL_CHARS)
             .weigher(new EntryWeigher<String, Template>() {
@@ -53,9 +56,12 @@ final class MacroCallTemplateCache {
     private MacroCallTemplateCache() { }
 
     static Template getTemplate(String macro) throws IOException {
+        if (macro.length() > MAX_CACHED_CALL_CHARS || macro.startsWith("<@renderPasswordField ")) {
+            return parse(macro);
+        }
         Template template = TEMPLATES.get(macro);
         if (template == null) {
-            template = new Template("macroCall", new StringReader(macro), FreeMarkerWorker.getDefaultOfbizConfig());
+            template = parse(macro);
             Template existing = TEMPLATES.putIfAbsent(macro, template);
             if (existing != null) {
                 template = existing;
@@ -64,7 +70,15 @@ final class MacroCallTemplateCache {
         return template;
     }
 
-    static int size() {
-        return TEMPLATES.size();
+    private static Template parse(String macro) throws IOException {
+        return new Template("macroCall", new StringReader(macro), FreeMarkerWorker.getDefaultOfbizConfig());
+    }
+
+    static boolean contains(String macro) {
+        return TEMPLATES.containsKey(macro);
+    }
+
+    static long weightedSize() {
+        return TEMPLATES.weightedSize();
     }
 }

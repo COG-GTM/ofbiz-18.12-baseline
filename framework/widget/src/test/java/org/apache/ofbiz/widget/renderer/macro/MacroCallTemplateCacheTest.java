@@ -78,11 +78,23 @@ public class MacroCallTemplateCacheTest {
 
     @Test
     public void totalCachedCallLengthIsBounded() throws Exception {
-        String big = new String(new char[100_000]).replace('\0', 'x');
-        for (int i = 0; i < 40; i++) {
-            MacroCallTemplateCache.getTemplate(big + i);
+        String chunk = new String(new char[MacroCallTemplateCache.MAX_CACHED_CALL_CHARS - 10]).replace('\0', 'x');
+        for (int i = 0; i < 300; i++) {
+            MacroCallTemplateCache.getTemplate(chunk + i);
         }
-        assertTrue(MacroCallTemplateCache.size() < 40);
+        assertTrue(MacroCallTemplateCache.weightedSize() <= MacroCallTemplateCache.MAX_TOTAL_CHARS);
+        assertTrue(MacroCallTemplateCache.contains(chunk + 299));
+        assertFalse(MacroCallTemplateCache.contains(chunk + 0));
+    }
+
+    @Test
+    public void passwordFieldsAndOversizedCallsAreNotCached() throws Exception {
+        String passwordCall = "<@renderPasswordField value=\"pw\" />";
+        assertEquals("pw", renderWithLibrary("<#macro renderPasswordField value>${value}</#macro>", passwordCall));
+        assertFalse(MacroCallTemplateCache.contains(passwordCall));
+        String big = new String(new char[MacroCallTemplateCache.MAX_CACHED_CALL_CHARS + 1]).replace('\0', 'x');
+        MacroCallTemplateCache.getTemplate(big);
+        assertFalse(MacroCallTemplateCache.contains(big));
     }
 
     private static String renderWithLibrary(String library, String call) throws Exception {
